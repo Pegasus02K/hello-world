@@ -12,7 +12,7 @@ tcfh_file_t tdcpfh_dcpfile_to_cfile(const tdcpcxcb_t *dcpfile);
 int tdcpfh_cfile_to_dcpfile(tdcpcxcb_t *dcpfile, tcfh_file_t cfile);
 
 
-int tdcpfh_open(tdcpcxcb_t *file, char *open_mode, int flags) 
+int OPENCXD(tdcpcxcb_t *file, char *open_mode)
 {
 	tcfh_file_t cfile;
 	
@@ -32,40 +32,42 @@ int tdcpfh_open(tdcpcxcb_t *file, char *open_mode, int flags)
 	}
 	
 	cfile = tdcpfh_dcpfile_to_cfile(file);
-	tcfh_open(&cfile, cfile.open_mode, flags);
+	tcfh_open(&cfile, cfile.open_mode, 0x00);
 	
 	return tdcpfh_cfile_to_dcpfile(file, cfile);
 }
 
 
-int tdcpfh_close(tdcpcxcb_t *file, int flags)
+int CLOSECX(tdcpcxcb_t *file)
 {
 	tcfh_file_t cfile;
 	
 	cfile = tdcpfh_dcpfile_to_cfile(file);
-	tcfh_close(&cfile, flags);
+	tcfh_close(&cfile, 0x00);
 	
 	return tdcpfh_cfile_to_dcpfile(file, cfile);
 }
 
 
-int tdcpfh_read(tdcpcxcb_t *file, char *key, int keylen, char *buf, int buflen, int flags)
+int READXD(tdcpcxcb_t *file, char *buf, char *return_code)
 {
 	tcfh_file_t cfile;
 	
 	cfile = tdcpfh_dcpfile_to_cfile(file);
-	tcfh_read(&cfile, key, keylen, buf, buflen, flags);
+	tcfh_read(&cfile, NULL, 0, buf, file->lrecl, 0x00);
+	
+	tdcpfh_set_return_code(return_code, cfile.file_status);
 	
 	return tdcpfh_cfile_to_dcpfile(file, cfile);
 }
 
 
-int tdcpfh_write(tdcpcxcb_t *file,  char *key, int keylen, char *buf, int buflen, int flags)
+int CWRITED(tdcpcxcb_t *file, char *buf)
 {
 	tcfh_file_t cfile;
 	
 	cfile = tdcpfh_dcpfile_to_cfile(file);
-	tcfh_write(&cfile, key, keylen, buf, buflen, flags);
+	tcfh_write(&cfile, NULL, 0, buf, file->lrecl, 0x00);
 	
 	return tdcpfh_cfile_to_dcpfile(file, cfile);
 }
