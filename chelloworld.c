@@ -11,7 +11,9 @@ int main()
    
   printf("this is the third change \n");
   printf("Change from github editor \n");
-  printf("Testing merge - testing confilct main in mai\n");
+
   printf("added this line for the hotfix1\n");
+
+  printf("Tested merge conflict. solved confilct and now ready to merge\n");
   return 0;
 }
