@@ -54,8 +54,8 @@ extern int CLOSECX(tdcpcxcb_t *file);
 
 /* -------------------------- record access --------------------------------- */
 
-extern int READXD(tdcpcxcb_t *file, char *buf, int buflen);
-extern int CWRITED(tdcpcxcb_t *file, char *buf, int buflen);
+extern int READXD(tdcpcxcb_t *file, char *buf, char *return_code);
+extern int CWRITED(tdcpcxcb_t *file, char *buf);
 
 /* -------------------------- end of header --------------------------------- */
 
