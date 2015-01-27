@@ -7,5 +7,6 @@ int main()
    
   printf("this is the third change \n");
   printf("Change from github editor \n");
+  printf("Testing merge");
   return 0;
 }
