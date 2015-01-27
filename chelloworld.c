@@ -11,6 +11,6 @@ int main()
    
   printf("this is the third change \n");
   printf("Change from github editor \n");
-  printf("Testing merge");
+  printf("Testing merge - testing conflict in patch2 branch\n");
   return 0;
 }
