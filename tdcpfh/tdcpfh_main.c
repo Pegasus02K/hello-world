@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <arpa/inet.h>
 #include "tdcpfh.h"
 #include "tcfh.h"
 
@@ -21,10 +22,10 @@ int OPENCXD(tdcpcxcb_t *file, char *open_mode)
 	if(!open_mode)
 	{
 		fprintf(stderr, "TDCPFH: open mode is not specified\n");
-		// should the file->return_code be changed here?
 		return -1;
 	}
 
+	// initializing is_open: ' ' to 0
 	if (0x20==file->is_open)
 		file->is_open = 0;
 
@@ -39,17 +40,16 @@ int OPENCXD(tdcpcxcb_t *file, char *open_mode)
 	else
 	{
 		fprintf(stderr, "TDCPFH: for DCP format, only \"IN\" and \"OUT\" are supported for the open mode: %c%c\n", open_mode[0], open_mode[1]);
-		// should the file->return_code be changed here?
 		return -1;
 	}
 	
 	cfile = tdcpfh_dcpfile_to_cfile(file);
 	
-//	printf("before open: \"%s\" file handle(dcpfile, cfile): (%d,%d), record length: (%d, %d)\n", cfile.file_name, file->file_handle, cfile.file_handle, file->lrecl, cfile.rec_size); 
+//	printf("before open: \"%s\" file handle(dcpfile, cfile): (%d,%d), record length: (%d, %d)\n", cfile.file_name, file->file_handle, cfile.file_handle, ntohs(file->lrecl), cfile.rec_size); 
 
 	tcfh_open(&cfile, cfile.open_mode, 0x00);
 
-//	printf("open: \"%s\" file handle(dcpfile, cfile): (%d,%d), record length: (%d, %d)\n", cfile.file_name, file->file_handle, cfile.file_handle, file->lrecl, cfile.rec_size); 
+//	printf("open: \"%s\" file handle(dcpfile, cfile): (%d,%d), record length: (%d, %d)\n", cfile.file_name, file->file_handle, cfile.file_handle, ntohs(file->lrecl), cfile.rec_size); 
 	
 	return tdcpfh_cfile_to_dcpfile(file, cfile);
 }
@@ -168,7 +168,7 @@ tcfh_file_t tdcpfh_dcpfile_to_cfile(const tdcpcxcb_t *dcpfile)
 	cfile.relative_key = 0;
 	cfile.key_length = 0;
 	cfile.key_loc = 0;
-	cfile.rec_size = dcpfile->lrecl;
+	cfile.rec_size = ntohs(dcpfile->lrecl);
 	cfile.cur_reclen = 0;
 	cfile.key_address = NULL;
 	cfile.record_addr = NULL;
@@ -181,9 +181,11 @@ tcfh_file_t tdcpfh_dcpfile_to_cfile(const tdcpcxcb_t *dcpfile)
 
 int tdcpfh_cfile_to_dcpfile(tdcpcxcb_t *dcpfile, tcfh_file_t cfile)
 {
+	int retval;
+
 	// copy 8 bytes from cfile.file_name to dcpfile->file_name not considering '\0'
 	memcpy(dcpfile->file_name, cfile.file_name, sizeof(dcpfile->file_name));
-	dcpfile->lrecl = cfile.rec_size;
+	dcpfile->lrecl = htons(cfile.rec_size);
 	dcpfile->chkpt = 'Y';
 	dcpfile->monoc = 'Y';
 	dcpfile->ioabend = 'Y';
@@ -193,5 +195,10 @@ int tdcpfh_cfile_to_dcpfile(tdcpcxcb_t *dcpfile, tcfh_file_t cfile)
 	dcpfile->is_open = cfile.is_open;
 	dcpfile->is_read = cfile.is_read;
 	
-	return tdcpfh_set_return_code_from_cfile(dcpfile->return_code, cfile.file_status);
+	retval = tdcpfh_set_return_code_from_cfile(dcpfile->return_code, cfile.file_status);
+	
+	if(retval)
+		fprintf(stderr, "TDCPFH: error occurred while processing %s\n", cfile.file_name);
+			
+	return retval;	
 }
