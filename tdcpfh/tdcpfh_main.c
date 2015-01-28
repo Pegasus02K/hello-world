@@ -4,8 +4,10 @@
 #include "tdcpfh.h"
 #include "tcfh.h"
 
+// simply set return code from arguments
+void tdcpfh_set_return_code(char *return_code, char r0, char r1, char r2, char r3);
 // translate file_status of cfile to return_code dcpfile
-int tdcpfh_set_return_code(char *return_code, const char *file_status);
+int tdcpfh_set_return_code_from_cfile(char *return_code, const char *file_status);
 // called before dsio_batch_open, close, read2, write to wrap dcp file to c file
 tcfh_file_t tdcpfh_dcpfile_to_cfile(const tdcpcxcb_t *dcpfile);
 // called after dsio_batch_open, close, read2, write to store data from c file to dcp file
@@ -19,6 +21,7 @@ int OPENCXD(tdcpcxcb_t *file, char *open_mode)
 	if(!open_mode)
 	{
 		fprintf(stderr, "TDCPFH: open mode is not specified\n");
+		// should the file->return_code be changed here?
 		return -1;
 	}
 
@@ -42,11 +45,11 @@ int OPENCXD(tdcpcxcb_t *file, char *open_mode)
 	
 	cfile = tdcpfh_dcpfile_to_cfile(file);
 	
-	printf("before open: \"%s\" file handle(dcpfile, cfile): (%d,%d), record length: (%d, %d)\n", cfile.file_name, file->file_handle, cfile.file_handle, file->lrecl, cfile.rec_size); 
+//	printf("before open: \"%s\" file handle(dcpfile, cfile): (%d,%d), record length: (%d, %d)\n", cfile.file_name, file->file_handle, cfile.file_handle, file->lrecl, cfile.rec_size); 
 
 	tcfh_open(&cfile, cfile.open_mode, 0x00);
 
-	printf("open: \"%s\" file handle(dcpfile, cfile): (%d,%d), record length: (%d, %d)\n", cfile.file_name, file->file_handle, cfile.file_handle, file->lrecl, cfile.rec_size); 
+//	printf("open: \"%s\" file handle(dcpfile, cfile): (%d,%d), record length: (%d, %d)\n", cfile.file_name, file->file_handle, cfile.file_handle, file->lrecl, cfile.rec_size); 
 	
 	return tdcpfh_cfile_to_dcpfile(file, cfile);
 }
@@ -58,7 +61,7 @@ int CLOSECX(tdcpcxcb_t *file)
 	
 	cfile = tdcpfh_dcpfile_to_cfile(file);
 
-	printf("close: file handle(dcpfile, cfile): (%d,%d) \n", file->file_handle, cfile.file_handle); 
+//	printf("close: file handle(dcpfile, cfile): (%d,%d) \n", file->file_handle, cfile.file_handle); 
 
 	tcfh_close(&cfile, 0x00);
 	
@@ -72,11 +75,11 @@ int READXD(tdcpcxcb_t *file, char *buf, char *return_code)
 	
 	cfile = tdcpfh_dcpfile_to_cfile(file);
 
-	printf("read: file handle(dcpfile, cfile): (%d,%d) \n", file->file_handle, cfile.file_handle); 
+//	printf("read: file handle(dcpfile, cfile): (%d,%d) \n", file->file_handle, cfile.file_handle); 
 
 	tcfh_read(&cfile, NULL, 0, buf, file->lrecl, 0x00);
 	
-	tdcpfh_set_return_code(return_code, cfile.file_status);
+	tdcpfh_set_return_code_from_cfile(return_code, cfile.file_status);
 	
 	return tdcpfh_cfile_to_dcpfile(file, cfile);
 }
@@ -88,7 +91,7 @@ int CWRITED(tdcpcxcb_t *file, char *buf)
 
 	cfile = tdcpfh_dcpfile_to_cfile(file);
 	
-	printf("write: \"%s\" file handle(dcpfile, cfile): (%d,%d) \n", cfile.file_name, file->file_handle, cfile.file_handle); 
+//	printf("write: \"%s\" file handle(dcpfile, cfile): (%d,%d) \n", cfile.file_name, file->file_handle, cfile.file_handle); 
 
 	tcfh_write(&cfile, NULL, 0, buf, file->lrecl, 0x00);
 	
@@ -96,7 +99,20 @@ int CWRITED(tdcpcxcb_t *file, char *buf)
 }
 
 
-int tdcpfh_set_return_code(char *return_code, const char *file_status)
+void tdcpfh_set_return_code(char *return_code, char r0, char r1, char r2, char r3)
+{
+	return_code[0] = r0; 
+	return_code[1] = r1;
+	return_code[2] = r2;
+	return_code[3] = r3;
+	
+//	printf("(file_status, return code): (%c%c, \"%c%c%c%c\")\n", file_status[0], file_status[1], return_code[0],return_code[1],return_code[2],return_code[3]);
+
+	return;
+}
+
+
+int tdcpfh_set_return_code_from_cfile(char *return_code, const char *file_status)
 {
     if (file_status[0] == '0' && file_status[1] == '0')
 	{ // success
@@ -105,7 +121,7 @@ int tdcpfh_set_return_code(char *return_code, const char *file_status)
 		return_code[2] = ' ';
 		return_code[3] = ' ';
 		
-		printf("(file_status, return code): (%c%c, \"%c%c%c%c\"\n", file_status[0], file_status[1], return_code[0],return_code[1],return_code[2],return_code[3]);
+//		printf("(file_status, return code): (%c%c, \"%c%c%c%c\")\n", file_status[0], file_status[1], return_code[0],return_code[1],return_code[2],return_code[3]);
 
 		return 0;
 	}
@@ -116,7 +132,7 @@ int tdcpfh_set_return_code(char *return_code, const char *file_status)
 		return_code[2] = 'F'; 
 		return_code[3] = ' ';
 		
-		printf("(file_status, return code): (%c%c, \"%c%c%c%c\"\n", file_status[0], file_status[1], return_code[0],return_code[1],return_code[2],return_code[3]);
+//		printf("(file_status, return code): (%c%c, \"%c%c%c%c\")\n", file_status[0], file_status[1], return_code[0],return_code[1],return_code[2],return_code[3]);
 
 		return 0;
 	}
@@ -128,7 +144,7 @@ int tdcpfh_set_return_code(char *return_code, const char *file_status)
 		return_code[3] = ' ';
 	}
 	
-	printf("(file_status, return code): (%c%c, \"%c%c%c%c\"\n", file_status[0], file_status[1], return_code[0],return_code[1],return_code[2],return_code[3]);
+//	printf("(file_status, return code): (%c%c, \"%c%c%c%c\")\n", file_status[0], file_status[1], return_code[0],return_code[1],return_code[2],return_code[3]);
 
 	return -1;
 }
@@ -177,5 +193,5 @@ int tdcpfh_cfile_to_dcpfile(tdcpcxcb_t *dcpfile, tcfh_file_t cfile)
 	dcpfile->is_open = cfile.is_open;
 	dcpfile->is_read = cfile.is_read;
 	
-	return tdcpfh_set_return_code(dcpfile->return_code, cfile.file_status);
+	return tdcpfh_set_return_code_from_cfile(dcpfile->return_code, cfile.file_status);
 }
