@@ -2,9 +2,12 @@
 
 int main()
 {
-  int i,j;
+  int i,j,k;
 
   i= 20;
+
+  j= 50;
+  k= 6;
 
   printf("Hello World for the gitHub: %d\n",i);
   printf("I make this changes in LinuxPC\n");
