@@ -6,15 +6,14 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <signal.h>
-#include "ofcom.h"
-#include "ds.h"
-#include "volm.h"
-#include "amsx.h"
 #include <usrinc/atmi.h>
 #include <usrinc/fbuf.h>
 #include <usrinc/tmaxapi.h>
 #include <oframe_fdl.h>
-
+#include "ofcom.h"
+#include "dscom.h"
+#include "ds.h"
+#include "nvsm.h"
 
 extern char *dsdelete_version;
 extern char *dsdelete_build_info;
@@ -68,14 +67,14 @@ int main(int argc, char *argv[])
 {
 	int retval; 
 	char record[1024];
-	char temprec[1024];
+//	char temprec[1024];
 	
 	/* TPCALL variables */
 	FBUF *snd_buf = NULL;
 	FBUF *rcv_buf = NULL;
 	long rcv_len;
 	char retmsg[1024];
-	
+
 	/* print version and one line summary */
 	if( argc >= 2 && ! strcmp(argv[1], "-V") )
 	{
@@ -97,27 +96,27 @@ int main(int argc, char *argv[])
 	if( retval < 0 ) goto _DSDELETE_MAIN_ERR_RETURN_00;
 	
 	/* compose trace log record */
-//	sprintf(record, "DSNAME=%s,CATALOG=%s,VOLSER=%s,MEMBER=%s", dsdelete_dsname, dsdelete_catalog, dsdelete_volser, dsdelete_member);
-	sprintf(record, "DSNAME=%s", dsdelete_dsname);
+	sprintf(record, "DSNAME=%s,CATALOG=%s,VOLSER=%s,MEMBER=%s", dsdelete_dsname, dsdelete_catalog, dsdelete_volser, dsdelete_member);
+/*	sprintf(record, "DSNAME=%s", dsdelete_dsname);
 	
-	if(dsdelete_catalog)
+	if( dsdelete_catalog[0]!='\0' )
 	{
 		sprintf(temprec, ",CATALOG=%s",dsdelete_catalog);
 		strcat(record, temprec);
 	}
 	
-	if(dsdelete_volser)
+	if( dsdelete_volser[0] != '\0' )
 	{
 		sprintf(temprec, ",VOLSER=%s",dsdelete_volser);
 		strcat(record, temprec);
 	}
 	
-	if(dsdelete_member)
+	if( dsdelete_member[0] != '\0' )
 	{
 		sprintf(temprec, ",MEMBER=%s",dsdelete_member);
 		strcat(record, temprec);
 	}
-
+*/
 	/* print a log message */
 	printf("DSDELETE %s\n", record); fflush(stdout);
 	retval = 0;
@@ -196,7 +195,7 @@ int main(int argc, char *argv[])
 	/* fbput FB_TYPE: only 'u' is used here. should NULL be stored otherwise? */
 	if ( dsdelete_uncatalog )
 	{
-		printf("Uncatalog flag on \n");
+//		printf("Uncatalog option enabled \n");
 		retval = fbput(snd_buf, FB_TYPE, "u", 0);
 	}
 	if (retval == -1)
@@ -210,8 +209,8 @@ int main(int argc, char *argv[])
 	if (retval < 0) 
 	{	// an error occurred
 		fprintf(stderr, "dsdelete: ***An error occurred in server OFRUISVRDSDEL->%s\n", tpstrerror(tperrno));
-		retval = fbget(rcv_buf, FB_RETMSG, retmsg, 0);
-		
+		retval = fbget(rcv_buf, FB_RETMSG, retmsg, 0);		
+		fprintf(stderr, "----------------Return message----------------\n%s----------------------------------------------\n", retmsg);
 		goto _DSDELETE_MAIN_ERR_RETURN_03;
 	}
 	
@@ -275,12 +274,15 @@ int check_args(int argc, char *argv[])
 		/* check if -m option is specified */
 		} else if( ! strcmp(argv[i], "-m") || ! strcmp(argv[i], "--member") ) {
 			SKIP_ARGI_OR_RETURN_ERROR(i, argc);
+/*
 			if( dscom_is_relaxed_member_limit() ) {
 				if( strlen(argv[i]) > NVSM_MEMBER_LEN ) return -1;
 			} else {
 				if( strlen(argv[i]) > DS_MEMBER_LEN ) return -1;
 			}
+*/
 			strcpy(dsdelete_member,  argv[i]);
+
 
 		/* check if -I option is specified */
 		} else if( ! strcmp(argv[i], "-I") || ! strcmp(argv[i], "--ignore") ) {
