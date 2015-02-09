@@ -160,6 +160,7 @@ int main(int argc, char *argv[])
 
 	/* fbput FB_CATNAME */
 	retval = fbput(snd_buf, FB_CATNAME, dsdelete_catalog, 0);
+	if ( retval == -1 )
 	{
 		fprintf(stderr, "dsdelete: ***An error occurred while storing CATNAME in field buffer->%s\n", fbstrerror(fberror)); 
 		goto _DSDELETE_MAIN_ERR_RETURN_03;
@@ -175,7 +176,10 @@ int main(int argc, char *argv[])
 
 	/* fbput FB_TYPE: only 'u' is used here. should NULL be stored otherwise? */
 	if ( dsdelete_uncatalog )
-		retval = fbput(snd_buf, FB_TYPE, 'u', 0);
+	{
+		printf("Uncatalog flag on \n");
+		retval = fbput(snd_buf, FB_TYPE, "u", 0);
+	}
 	if (retval == -1)
 	{
 		fprintf(stderr, "dsdelete: ***An error occurred while storing TYPE(uncatalog option) in field buffer->%s\n", fbstrerror(fberror)); 
@@ -186,10 +190,9 @@ int main(int argc, char *argv[])
 	retval = tpcall("OFRUISVRDSDEL", (char *)snd_buf, 0, (char **)&rcv_buf, &rcv_len, TPNOFLAGS);
 	if (retval < 0) 
 	{	// an error occurred
-//		fprintf(stderr, "dsdelete: ***An error occurred in server OFRUISVRDSDEL->%s\n", tpstrerror(tperrno));
+		fprintf(stderr, "dsdelete: ***An error occurred in server OFRUISVRDSDEL->%s\n", tpstrerror(tperrno));
 		retval = fbget(rcv_buf, FB_RETMSG, retmsg, 0);
 		
-		fprintf(stderr, "dsdelete: ***An error occurred: %s\n", retmsg); 
 		goto _DSDELETE_MAIN_ERR_RETURN_03;
 	}
 	
