@@ -68,6 +68,7 @@ int main(int argc, char *argv[])
 {
 	int retval; 
 	char record[1024];
+	char temprec[1024];
 	
 	/* TPCALL variables */
 	FBUF *snd_buf = NULL;
@@ -96,8 +97,26 @@ int main(int argc, char *argv[])
 	if( retval < 0 ) goto _DSDELETE_MAIN_ERR_RETURN_00;
 	
 	/* compose trace log record */
-	sprintf(record, "DSNAME=%s,CATALOG=%s,VOLSER=%s,MEMBER=%s",
-		dsdelete_dsname, dsdelete_catalog, dsdelete_volser, dsdelete_member);
+//	sprintf(record, "DSNAME=%s,CATALOG=%s,VOLSER=%s,MEMBER=%s", dsdelete_dsname, dsdelete_catalog, dsdelete_volser, dsdelete_member);
+	sprintf(record, "DSNAME=%s", dsdelete_dsname);
+	
+	if(dsdelete_catalog)
+	{
+		sprintf(temprec, ",CATALOG=%s",dsdelete_catalog);
+		strcat(record, temprec);
+	}
+	
+	if(dsdelete_volser)
+	{
+		sprintf(temprec, ",VOLSER=%s",dsdelete_volser);
+		strcat(record, temprec);
+	}
+	
+	if(dsdelete_member)
+	{
+		sprintf(temprec, ",MEMBER=%s",dsdelete_member);
+		strcat(record, temprec);
+	}
 
 	/* print a log message */
 	printf("DSDELETE %s\n", record); fflush(stdout);
