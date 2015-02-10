@@ -1,0 +1,163 @@
+@AUTHOR=hslee
+@MODULE=uisvr
+@PREFIX=UIS
+
+# library functions message code
+UISVR_MSG_SVRCOM_SVR_START_ERROR=UIS9101E, svrcom_svr_start() failed - rc=%d
+UISVR_MSG_SVRCOM_SVR_END_ERROR=UIS9102E, svrcom_svr_end() failed - rc=%d
+UISVR_MSG_ANONYMOUS_FUNCTION_ERROR=UIS9104E, %s failed - rc=%d
+UISVR_MSG_TSAM_DISCONNECTED_ERROR=UIS9199E, TSAM connection lost - rc=%d
+
+# Message
+UISVR_MSG_DS_CREATE_ARGS=           UIS0001M, %s: ds create args [%s]
+UISVR_MSG_DS_OWNER_CHANGE=          UIS0022M, %s: ds owner change=%d
+UISVR_MSG_DS_CREATE_OK=             UIS0023M, %s: Dataset Create OK. dsn=%s
+UISVR_MSG_DS_DELETE_OK=             UIS0024M, %s: Dataset Delete OK. dsn=%s
+UISVR_MSG_GDG_CREATE_ARGS=          UIS0025M, %s: GDG create args [%s]
+UISVR_MSG_SOURCE_FILE=              UIS0026M, %s: Source File        : [%s]
+UISVR_MSG_DEST_DATASET=             UIS0027M, %s: Destination Dataset: [%s]
+UISVR_MSG_DEST_MEMBER=              UIS0028M, %s: Destination Member : [%s]
+UISVR_MSG_USER_CATALOG=             UIS0029M, %s: User Catalog       : [%s]
+UISVR_MSG_DELIMITER=                UIS0030M, %s: Delimiter          : [%s]
+UISVR_MSG_SOURCE_DATASET=           UIS0031M, %s: Source Dataset     : [%s]
+UISVR_MSG_SOURCE_MEMBER=            UIS0032M, %s: Source Member      : [%s]
+UISVR_MSG_DEST_FILEPATH=            UIS0033M, %s: Destination File   : [%s]
+UISVR_MSG_DS_COPY_OK=               UIS0035M, %s: Dataset Copy OK. from=%s,to=%s
+UISVR_MSG_DIRECTORY_COPY=           UIS0036M, %s: Directory %s is Copied to %s
+UISVR_MSG_GDG_CREATE_OK=            UIS0038M, %s: GDG Create OK. name=%s
+UISVR_MSG_GDG_DELETE_OK=            UIS0039M, %s: GDG Delete OK. name=%s
+UISVR_MSG_DS_MOVE_OK=               UIS0040M, %s: Dataset Move OK. from=%s,to=%s
+UISVR_MSG_DS_EXPORT_OK=             UIS0051M, %s: Dataset Export OK. dsn=%s
+UISVR_MSG_DS_IMPORT_OK=             UIS0052M, %s: Dataset Import OK. dsn=%s
+UISVR_MSG_DS_LOAD_OK=               UIS0053M, %s: Dataset Load OK. dsn=%s
+UISVR_MSG_DS_SAVE_OK=               UIS0054M, %s: Dataset Save OK. dsn=%s
+UISVR_MSG_REMOVING_SOURCE=          UIS0055M, %s: Removing Source File - filepath=%s
+UISVR_MSG_EMPTY_DATASET=			UIS0056M, %s: Data set is empty.
+UISVR_MSG_END_OF_DATASET=			UIS0057M, %s: Reached the end of data set. Total record number is %d.
+UISVR_MSG_DEPLOY_FINISH=			UIS0058M, %s: Deploy finished. total=%d,succ=%d,fail=%d
+
+# Error
+UISVR_MSG_FILE_NOT_FOUND_ERROR=     UIS0001E, %s: file %s is not found.
+UISVR_MSG_FILE_OPEN_ERROR=          UIS0002E, %s: file open error. path=%s,err=%s
+UISVR_MSG_FILE_WRITE_ERROR=         UIS0003E, %s: file write error. fd=%d,err=%s
+UISVR_MSG_FILE_EXIST_ERROR=         UIS0004E, %s: file %s already exist.
+UISVR_MSG_INVALID_DSN_ERROR=        UIS0005E, %s: Invalid dataset name. dsname=%s
+UISVR_MSG_INTERNAL_FUNC_ERROR=      UIS0006E, %s: %s() failed. rc=%d.
+UISVR_MSG_RECORD_LENGTH_ERROR=      UIS0008E, %s: Input record length error. record=%d,reclen=%d,maxlen=%d
+UISVR_MSG_DATASIZE_LIMIT_ERROR=     UIS0009E, %s: Dataset is greater than size limit. dsname=%s,size=%lld
+UISVR_MSG_RECORD_DELIMITER_ERROR=   UIS0010E, %s: Input record does not have a delimiter. record=%d
+UISVR_MSG_MALLOC_ERROR=             UIS0011E, %s: malloc for %s failed. err=%s
+UISVR_MSG_STORAGE_CALSS_ERROR=      UIS0012E, %s: storage calss name is null, dsname=%s
+UISVR_MSG_DATASIZE_UPDATE_ERROR=    UIS0013E, %s: Data size update failed. rc=%d
+UISVR_MSG_SAME_DSNAME_ERROR=        UIS0014E, %s: from and to dataset names are the same. dsname=%s
+UISVR_MSG_CONF_READ_ERROR=          UIS0023E, %s: cannot get configuration [%s] %s from %s. rc=%d
+UISVR_MSG_NO_DATASET_ERROR=         UIS0024E, %s: dataset not found. dsname=%s
+UISVR_MSG_NO_ENTRY_ERROR=           UIS0025E, %s: entry not found. entname=%s
+UISVR_MSG_NO_VTOC_ERROR=            UIS0026E, %s: VTOC element not found. dsname=%s
+UISVR_MSG_SCHEMA_FILEPATH_ERROR=    UIS0027E, %s: dscom_schema_filepath() failed. rc=%d. dsn=%s, vol=%s
+UISVR_MSG_PARSE_SCHEMA_ERROR=       UIS0028E, %s: dscom_parse_schema() failed. rc=%d. filepath='%s'
+UISVR_MSG_SELECT_COND_ERROR=        UIS0029E, %s: dscom_select_condition() failed. rc=%d.
+UISVR_MSG_FILE_CLOSE_ERROR=         UIS0030E, %s: file close error. fd=%d,err=%s
+UISVR_MSG_FILE_READ_ERROR=          UIS0031E, %s: file read error. fd=%d,err=%s
+UISVR_MSG_TSAM_NOT_SUPPORT_ERROR=   UIS0032E, %s: TSAM dataset not supported. dsname=%s
+UISVR_MSG_LOGIN_ALREADY_ERROR=      UIS0033E, %s: already logged on error.
+UISVR_MSG_NOT_LOGIN_YET_ERROR=      UIS0034E, %s: not logged on yet error.
+UISVR_MSG_INVALID_VOL_ERROR=        UIS0035E, %s: Invalid volume serial. volser=%s
+UISVR_MSG_INVALID_SPACE_UNIT_ERROR= UIS0036E, %s: Invalid TRK/CYL/blklgth value. TRK/CYL/blklgth=%s
+UISVR_MSG_INVALID_CATNAME_ERROR=    UIS0037E, %s: Invalid catalog name. catalog=%s
+UISVR_MSG_INVALID_UNIT_ERROR=       UIS0038E, %s: Invalid unit name. unit=%s
+UISVR_MSG_INVALID_MEMBER_ERROR=     UIS0039E, %s: Invalid member name. member=%s
+UISVR_MSG_INVALID_DSORG_ERROR=      UIS0040E, %s: Invalid dataset organization. dsorg=%s
+UISVR_MSG_INVALID_RECFM_ERROR=      UIS0041E, %s: Invalid record format. recfm=%s
+UISVR_MSG_INVALID_BLKSIZE_ERROR=    UIS0042E, %s: Invalid block size. blksize=%s
+UISVR_MSG_INVALID_LRECL_ERROR=      UIS0043E, %s: Invalid record length. lrecl=%s
+UISVR_MSG_INVALID_KEYLEN_ERROR=     UIS0044E, %s: Invalid key length. keylen=%s
+UISVR_MSG_INVALID_KEYPOS_ERROR=     UIS0045E, %s: Invalid key position. keypos=%s
+UISVR_MSG_INVALID_KEYINFO_ERROR=    UIS0046E, %s: Invalid key infomations. lrecl=%d,keylen=%d,keypos=%d
+UISVR_MSG_INVALID_ISAM_KEYLEN_ERROR=UIS0047E, %s: Key length must be specified for ISAM dataset
+UISVR_MSG_INVALID_EXPDATE_ERROR=    UIS0048E, %s: Invalid expiration date. expdt=%s
+UISVR_MSG_INVALID_PRIMARY_ERROR=    UIS0049E, %s: Invalid primary space. primary=%s
+UISVR_MSG_INVALID_SECONDARY_ERROR=  UIS0050E, %s: Invalid secondary space. secondary=%s
+UISVR_MSG_INVALID_NOCAT_ERROR=      UIS0051E, %s: Invalid nocatalog value. only YES is allowed. nocatalog=%s
+UISVR_MSG_INVALID_SRC_DSNAME_ERROR= UIS0052E, %s: Invalid source dataset name. dsname=%s
+UISVR_MSG_INVALID_DES_DSNAME_ERROR= UIS0053E, %s: Invalid destination dataset name. dsname=%s
+UISVR_MSG_INVALID_SRC_VOLSER_ERROR= UIS0054E, %s: Invalid source volume serial. volser=%s
+UISVR_MSG_INVALID_DES_VOLSER_ERROR= UIS0055E, %s: Invalid destination volume serial. volser=%s
+UISVR_MSG_NO_WILD_CARD_ALLOWD_ERROR=UIS0056E, %s: Wild card character is not allowed in dsname. dsname=%s
+UISVR_MSG_NO_DSNAME_IN_CATALOG_ERROR=UIS0057E, %s: Dataset is not found in the catalog. dsname=%s,catalog=%s
+UISVR_MSG_DATASET_IS_NOT_PDS_ERROR= UIS0058E, %s: Dataset is not a PDS while member name is specified. dsname=%s
+UISVR_MSG_INVALID_GDG_LIMIT_ERROR=  UIS0059E, %s: Invalid GDG limit. gdglimit=%d
+UISVR_MSG_FILE_OFFSET_ERROR=        UIS0060E, %s: file offset is greater than the length of the file.
+UISVR_MSG_NOT_SPRT_FILE_ERROR=      UIS0061E, %s: not supported file.
+UISVR_MSG_FILE_SEEK_ERROR=          UIS0062E, %s: file seek failed.
+UISVR_MSG_DIR_NOT_FOUND_ERROR=      UIS0063E, %s: directory %s is not found.
+UISVR_MSG_NOT_DIRECTORY_ERROR=      UIS0064E, %s: %s is not directory
+UISVR_MSG_BUF_OVERFLOW_ERROR=       UIS0065E, %s: buffer overflow.
+UISVR_MSG_INVALID_FILE_ERROR=       UIS0066E, %s: Invalid file name. file=%s
+UISVR_MSG_INVALID_OFFSET_ERROR=     UIS0067E, %s: Invalid offset. offset=%ld
+UISVR_MSG_INVALID_JOB_ERROR=        UIS0068E, %s: Invalid job name. job=%s
+UISVR_MSG_INVALID_JCL_ERROR=        UIS0069E, %s: Invalid jcl data.
+UISVR_MSG_FILE_CREAT_ERROR=         UIS0070E, %s: file creat error. path=%s,err=%s
+UISVR_MSG_JCL_OVERFLOW_ERROR=		UIS0071E, %s: jcl data overflow. size=%d(max=%d)
+UISVR_MSG_NOT_FOUND_DSINFO_ERROR=	UIS0072E, %s: Not found dataset(%s) information from dslist. Command=[%s]
+UISVR_MSG_NOT_CATALOG_DATASET_ERROR=UIS0073E, %s: Dataset %s is not cataloged.
+UISVR_MSG_INVALID_START_LINE_ERROR= UIS0074E, %s: Start line is greater than total line of dataset: %d > %d
+UISVR_MSG_INVALID_EDIT_LINE_ERROR=  UIS0075E, %s: Edit line is greater than total line of dataset: %d > %d
+UISVR_MSG_INVALID_FIND_STRLEN_ERROR=UIS0076E, %s: The length(%d) of hex must be even numbers.
+UISVR_MSG_INVALID_COMMAND_ERROR=    UIS0077E, %s: Invalid command(%s) received.
+UISVR_MSG_NOT_FOUND_PATTERN_ERROR=  UIS0079E, %s: Pattern is Not found : %s
+UISVR_MSG_LOGIN_ERROR=              UIS0080E, %s: UISVR_login_process failed. (RC: %d).
+UISVR_MSG_CANNOT_EDIT_USING_AIXPATH=UIS0081E, %s: You cannot edit VSAM using AIX PATH(%d).
+UISVR_MSG_CANNOT_EDIT_VARIABLE_NVSM=UIS0082E, %s: You cannot edit Variable length NON-VSAM. [%s]
+UISVR_MSG_ALREADY_LOCKED_DATASET=   UIS0083E, %s: The data set is already in use.
+UISVR_MSG_ALREADY_LOCKED_DATASET2=  UIS0084E, %s: The data set is already in use by [%s].
+UISVR_MSG_EXCLUSIVE_LOCKED_DATASET= UIS0085E, %s: The data set is already in use with exclusive locking.
+UISVR_MSG_EXCLUSIVE_LOCKED_DATASET2=UIS0086E, %s: The data set is already in use with exclusive locking by [%s].
+UISVR_MSG_NOT_AUTHORIZED_ERROR=		UIS0087E, %s: You are not authorized to access this resource.
+UISVR_MSG_INVALID_PROFILE_USER=		UIS0088E, %s; Invalid user name [%s].
+UISVR_MSG_INVALID_PROFILE_FILE=     UIS0089E, %s: User profile file is invalid [%s].
+UISVR_MSG_PROFILE_NOT_EXIST=		UIS0090E, %s: User profile is not exists [%s].
+UISVR_MSG_NOT_PDS=					UIS0091E, %s: Dataset is not a PDS. dsname=%s.
+UISVR_MSG_SAME_INPUT_OUTPUT=		UIS0092E, %s: Input file and output file is same, input=%s, output=%s.
+UISVR_MSG_FILE_WRITE_PROTECTED=     UIS0093E, %s: The file is write-protected. file=%s
+UISVR_MSG_DUPLICATE_MEMBER_FOUND=   UIS0094E, %s: Duplicate member name. dsn=%s, member=%s.
+UISVR_MSG_INVALID_DIR_ERROR=    UIS0095E, %s: Invalid directory space. directory=%s
+
+# Other Function Error
+UISVR_MSG_SMS_FUNCTION_ERROR=       UIS0101E, %s: %s() failed. rc=%d.
+UISVR_MSG_AMS_FUNCTION_ERROR=       UIS0102E, %s: %s() failed. rc=%d.
+UISVR_MSG_OFCOM_FUNCTION_ERROR=     UIS0103E, %s: %s() failed. rc=%d.
+UISVR_MSG_SYSTEM_FUNC_ERROR=        UIS0104E, %s: system(%s) failed. err=%s,rc=%d.
+UISVR_MSG_STAT_FUNC_ERROR=          UIS0105E, %s: stat(%s) failed. err=%s,rc=%d.
+UISVR_MSG_UNLINK_FUNC_ERROR=        UIS0106E, %s: unlink(%s) failed. err=%s,rc=%d.
+UISVR_MSG_DSIO_FUNCTION_ERROR=      UIS0108E, %s: %s() failed. rc=%d.
+UISVR_MSG_DSALC_FUNCTION_ERROR=     UIS0109E, %s: %s() failed. rc=%d.
+UISVR_MSG_SVRCOM_FUNCTION_ERROR=    UIS0110E, %s: %s() failed. rc=%d.
+UISVR_MSG_AMSX_FUNCTION_ERROR=      UIS0111E, %s: %s() failed. rc=%d.
+UISVR_MSG_VOLM_FUNCTION_ERROR=      UIS0112E, %s: %s() failed. rc=%d.
+UISVR_MSG_LOCKM_FUNCTION_ERROR=     UIS0113E, %s: %s() failed. rc=%d.
+UISVR_MSG_INNER_FUNCTION_ERROR=     UIS0115E, %s: %s() failed. rc=%d.
+UISVR_MSG_OPENDIR_FUNC_ERROR=       UIS0116E, %s: opendir(%s) failed. err=%s
+UISVR_MSG_RENAME_FUNC_ERROR=        UIS0117E, %s: rename(%s) failed. err=%s
+UISVR_MSG_DSCOM_FUNCTION_ERROR=     UIS0118E, %s: %s() failed. rc=%d
+UISVR_MSG_CLOSEDIR_FUNC_ERROR=      UIS0119E, %s: closedir(%s) failed. err=%s
+UISVR_MSG_RMDIR_FUNC_ERROR=         UIS0120E, %s: rmdir(%s) failed. err=%s
+UISVR_MSG_OTHER_FUNC_ERROR=         UIS0121E, %s: %s() failed. err=%s
+UISVR_MSG_INVALID_CREAT_DATE_ERROR= UIS0122E, %s: invalid creation date specified - date[%s]
+UISVR_MSG_LINK_FUNC_ERROR=          UIS0123E, %s: link(%s) failed. err=%s,rc=%d.
+UISVR_MSG_FCNTL_FUNC_ERROR=			UIS0124E, %s: fcntl(%s) failed. err=%s.
+UISVR_MSG_FILE_STATUS_ERROR=		UIS0125E, %s: %s. file=%s
+
+# TMAX Error
+UISVR_MSG_TMAX_TPALLOC_ERROR=       UIS0201E, %s: tpalloc(%s) fails. err=%s.
+UISVR_MSG_TMAX_TPREALLOC_ERROR=     UIS0202E, %s: tprealloc(%s) fails. err=%s.
+UISVR_MSG_TMAX_TPCALL_ERROR=        UIS0203E, %s: tpcall(%s) fails. err=%s.
+UISVR_MSG_TMAX_FBGET_ERROR=         UIS0204E, %s: fbget(%s) failed err=%s.
+UISVR_MSG_TMAX_FBPUT_ERROR=         UIS0205E, %s: fbput(%s) failed err=%s.
+UISVR_MSG_TMAX_FBALLOC_ERROR=       UIS0206E, %s: fballoc(%s) fails. err=%s.
+UISVR_MSG_TMAX_FBREALLOC_ERROR=     UIS0207E, %s: fbrealloc(%s) fails. err=%s.
+UISVR_MSG_TMAX_SVC_TIMEOUT_ERROR=   UIS0208E, %s: service timeout error.
+UISVR_MSG_TMAX_FBDELALL_ERROR=      UIS0209E, %s: fbdelall_tu(), err=%s.
+UISVR_MSG_TMAX_TPSPRACALL_ERROR=    UIS0210E, %s: tpspracall() failed. svrid=%d, errmsg=%s.
+UISVR_MSG_TMAX_TPGETRPLY_ERROR=     UIS0211E, %s: tpgetrply() failed. rc=%d, errmsg=%s.
+UISVR_MSG_TMAX_FBGETLEN_ERROR=      UIS0212E, %s: fbgetlen(%s) failed err=%s.
