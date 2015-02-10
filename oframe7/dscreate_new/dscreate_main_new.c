@@ -161,10 +161,10 @@ int main(int argc, char *argv[])
 	}
 	
 //TODO: directory should be added here
-	sprintf(dscreate_args, "%s;%s;%s;%s;%s;%d;%d;%s;%s;%d;%d;%s;%s;%s;%s;",
+	sprintf(dscreate_args, "%s;%s;%s;%s;%s;%d;%d;%s;%s;%d;%d;%s;%s;%s;%s;%s;",
 			dscreate_member, dscreate_volser, dscreate_dsorg, dscreate_recfm, dscreate_unit, dscreate_lrecl,
 			dscreate_blksize, dscreate_expdt, dscreate_catalog, dscreate_keylen,
-			dscreate_keypos, dscreate_nocatalog_to_svr, dscreate_primary, dscreate_secondary, dscreate_avgval);
+			dscreate_keypos, dscreate_nocatalog_to_svr, dscreate_primary, dscreate_secondary, dscreate_avgval, dscreate_directory);
 
 	/* initialize user return code */
 	tpurcode = 0;
