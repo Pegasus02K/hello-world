@@ -156,11 +156,6 @@ int main(int argc, char *argv[])
 		fprintf(stderr, "dscreate: *** invalid space parameter - SPACE=%s\n", dscreate_space);
 		return -1;
 	}
-	
-	sprintf(dscreate_args, "%s;%s;%s;%s;%s;%d;%d;%s;%s;%d;%d;%s;%s;%s;%s;%s;",
-			dscreate_member, dscreate_volser, dscreate_dsorg, dscreate_recfm, dscreate_unit, dscreate_lrecl,
-			dscreate_blksize, dscreate_expdt, dscreate_catalog, dscreate_keylen,
-			dscreate_keypos, dscreate_nocatalog_to_svr, dscreate_primary, dscreate_secondary, dscreate_avgval, dscreate_directory);
 
 	/* initialize user return code */
 	tpurcode = 0;
@@ -190,7 +185,11 @@ int main(int argc, char *argv[])
 		goto _DSCREATE_MAIN_ERR_RETURN_03;
 	}
 	
-	/* fbput FB_ARGS */
+	/* fbput FB_ARGS */	
+	sprintf(dscreate_args, "%s;%s;%s;%s;%s;%d;%d;%s;%s;%d;%d;%s;%s;%s;%s;%s",
+			dscreate_member, dscreate_volser, dscreate_dsorg, dscreate_recfm, dscreate_unit, dscreate_lrecl,
+			dscreate_blksize, dscreate_expdt, dscreate_catalog, dscreate_keylen,
+			dscreate_keypos, dscreate_nocatalog_to_svr, dscreate_primary, dscreate_secondary, dscreate_avgval, dscreate_directory);
 	retval = fbput(snd_buf, FB_ARGS, dscreate_args, 0);
 	if (retval == -1)
 	{

@@ -90,8 +90,6 @@ int main(int argc, char *argv[])
 	sprintf(record, "SOURCE=%s,DEST=%s,CATALOG=%s,VOLSER=%s,TARGET=%s",
 		dscopy_src_dsname, dscopy_dst_dsname, dscopy_src_catname, dscopy_src_volser, dscopy_dst_volser);
 
-	sprintf(dscopy_dst_args, "%s;%s", dscopy_dst_dsname, dscopy_dst_volser);
-
 	/* print a log message */
 	printf("DSCOPY %s\n", record); fflush(stdout);
 	retval = 0;
@@ -157,6 +155,7 @@ int main(int argc, char *argv[])
 	}
 	
 	/* fbput FB_ARGS */
+	sprintf(dscopy_dst_args, "%s;%s", dscopy_dst_dsname, dscopy_dst_volser);
 	retval = fbput(snd_buf, FB_ARGS, dscopy_dst_args, 0);
 	if ( retval == -1 )
 	{
