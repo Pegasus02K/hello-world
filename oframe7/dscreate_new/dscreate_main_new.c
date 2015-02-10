@@ -47,7 +47,7 @@ int dscreate_nocatalog = 0;
 int dscreate_recatalog = 0;
 
 char dscreate_args[1024] = {0,};
-char dscreate_type = \0;
+char dscreate_type = 0;
 
 char dscreate_nocatalog_to_svr[4] = {0,};
 char dscreate_primary[100] = {0,};
@@ -150,7 +150,7 @@ int main(int argc, char *argv[])
 		strcpy(dscreate_nocatalog_to_svr, "YES");
 		dscreate_type = 'N';
 	}
-	else if (dscreate_ recatalog)
+	else if (dscreate_recatalog)
 		dscreate_type = 'R';
 	
 	retval = process_space_param(dscreate_space);
@@ -204,7 +204,7 @@ int main(int argc, char *argv[])
 	
 	/* fbput FB_TYPE */
 	if (dscreate_type)
-		retval = fbput(snd_buf, FB_TYPE, dscreate_type, 0);
+		retval = fbput(snd_buf, FB_TYPE, (char*)&dscreate_type, 0);
 	if (retval == -1)
 	{
 		fprintf(stderr, "dscreate: ***An error occurred while storing TYPE in field buffer->%s\n", fbstrerror(fberror)); 
