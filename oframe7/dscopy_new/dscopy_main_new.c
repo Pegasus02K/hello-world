@@ -7,6 +7,10 @@
 #include <unistd.h>
 #include <dirent.h>
 #include <signal.h>
+#include <usrinc/atmi.h>
+#include <usrinc/fbuf.h>
+#include <usrinc/tmaxapi.h>
+#include <oframe_fdl.h>
 #include "ofcom.h"
 #include "ds.h"
 #include "dscom.h"
