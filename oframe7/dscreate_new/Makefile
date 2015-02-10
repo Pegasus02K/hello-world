@@ -3,7 +3,7 @@ include $(SOURCE_BASE)/base/make/cflags
 TYPE = tool
 MODULE = dscreate_new
 
-LIBS = -lofcom -lvolm -ldscom -lams -ldsio -ldsalc -llockm $(LIBTMAXCLI)
+LIBS = -lofcom -ldscom $(LIBTMAXCLI)
 CFLAGS_ADD = -I$(SOURCE_BASE)/base/ds/include -I$(TMAXDIR)
 
 SOURCES = \

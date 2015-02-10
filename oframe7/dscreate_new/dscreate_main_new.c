@@ -14,10 +14,7 @@
 #include "ofcom.h"
 #include "ds.h"
 #include "dscom.h"
-#include "volm.h"
-#include "ams.h"
-#include "dsalc.h"
-#include "dsio_batch.h"
+#include "nvsm.h"
 
 
 extern char *dscreate_version;
@@ -217,7 +214,7 @@ int main(int argc, char *argv[])
 	{	// an error occurred
 		fprintf(stderr, "dscreate: ***An error occurred in server OFRUISVRDSCRE->%s\n", tpstrerror(tperrno));
 		retval = fbget(rcv_buf, FB_RETMSG, retmsg, 0);		
-		fprintf(stderr, "----------------Return message----------------\n%s----------------------------------------------\n", retmsg);
+		fprintf(stderr, "----------------Return message----------------\n%s\n----------------------------------------------\n", retmsg);
 		goto _DSCREATE_MAIN_ERR_RETURN_03;
 	}
 	
