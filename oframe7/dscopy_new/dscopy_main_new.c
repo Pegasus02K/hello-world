@@ -159,12 +159,21 @@ int main(int argc, char *argv[])
 		goto _DSCOPY_MAIN_ERR_RETURN_03;
 	}
 	
-	
 	/* fbput FB_ARGS */
 	retval = fbput(snd_buf, FB_ARGS, dscopy_dst_args, 0);
 	if ( retval == -1 )
 	{
 		fprintf(stderr, "dscopy: ***An error occurred while storing ARGS in field buffer->%s\n", fbstrerror(fberror)); 
+		goto _DSCOPY_MAIN_ERR_RETURN_03;
+	}
+	
+	/* tmax service call */
+	retval = tpcall("OFRUISVRDSCOPY2", (char *)snd_buf, 0, (char **)&rcv_buf, &rcv_len, TPNOFLAGS);
+	if (retval < 0) 
+	{	// an error occurred
+		fprintf(stderr, "dscopy: ***An error occurred in server OFRUISVRDSCOPY2->%s\n", tpstrerror(tperrno));
+		retval = fbget(rcv_buf, FB_RETMSG, retmsg, 0);
+		fprintf(stderr, "----------------Return message----------------\n%s\n----------------------------------------------\n", retmsg);
 		goto _DSCOPY_MAIN_ERR_RETURN_03;
 	}
 	
