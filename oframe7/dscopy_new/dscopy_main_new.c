@@ -14,10 +14,7 @@
 #include "ofcom.h"
 #include "ds.h"
 #include "dscom.h"
-#include "volm.h"
-#include "ams.h"
-#include "dsalc.h"
-#include "dsio_batch.h"
+#include "nvsm.h"
 
 
 extern char *dscopy_version;
