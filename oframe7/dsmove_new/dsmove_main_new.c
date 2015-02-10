@@ -5,13 +5,15 @@
 #include <unistd.h>
 #include <dirent.h>
 #include <signal.h>
+#include <usrinc/atmi.h>
+#include <usrinc/fbuf.h>
+#include <usrinc/tmaxapi.h>
+#include <oframe_fdl.h>
 #include "ofcom.h"
 #include "ds.h"
 #include "dscom.h"
-#include "volm.h"
-#include "ams.h"
-#include "dsalc.h"
-#include "dsio_batch.h"
+#include "nvsm.h"
+
 
 
 extern char *dsmove_version;
@@ -24,17 +26,6 @@ char dsmove_src_volser[DS_VOLSER_LEN + 2] = {0,};
 char dsmove_dst_dsname[DS_DSNAME_LEN + 2] = {0,};
 char dsmove_dst_volser[DS_VOLSER_LEN + 2] = {0,};
 char dsmove_dst_args[128] = {0,};
-
-int dcb_type = 0;
-dsio_dcb_t **src_dcbs = NULL;
-dsio_dcb_t **dst_dcbs = NULL;
-
-dsalc_req_t req_sav;
-int64_t data_size_sav, rec_count_sav;
-
-int dsmove_new_allocate_method = 0;
-int dsmove_not_cataloged = 0;
-int dsmove_uncat_source = 0;
 
 int error_return(int error_code, char *function_name);
 int system_error(char *function_name);
@@ -66,7 +57,7 @@ static void _signal_handler(int signo)
 
 int main(int argc, char *argv[])
 {
-	int retval; char record[1024], buffer[4096];
+	int retval; char record[1024];
 
 	/* TPCALL variables */
 	FBUF *snd_buf = NULL;
