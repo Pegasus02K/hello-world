@@ -14,7 +14,10 @@
 #include "ofcom.h"
 #include "ds.h"
 #include "dscom.h"
-#include "nvsm.h"
+#include "volm.h"
+#include "ams.h"
+#include "dsalc.h"
+#include "dsio_batch.h"
 
 
 extern char *dscreate_version;
@@ -214,7 +217,7 @@ int main(int argc, char *argv[])
 	{	// an error occurred
 		fprintf(stderr, "dscreate: ***An error occurred in server OFRUISVRDSCRE->%s\n", tpstrerror(tperrno));
 		retval = fbget(rcv_buf, FB_RETMSG, retmsg, 0);		
-		fprintf(stderr, "----------------Return message----------------\n%s\n----------------------------------------------\n", retmsg);
+		fprintf(stderr, "----------------Return message----------------\n%s----------------------------------------------\n", retmsg);
 		goto _DSCREATE_MAIN_ERR_RETURN_03;
 	}
 	
@@ -374,23 +377,23 @@ int check_args(int argc, char *argv[])
 int print_usage()
 {
 	printf("Usage: dscreate [options] <dsname>\n");
-	printf("<dsname>			Specifies the dataset name to be created\n");
+	printf("<dsname>            Specifies the dataset name to be created\n");
 	printf("\n");
 
 	printf("Options:\n");
-	printf("  -c, --catalog	 Specifies the catalog name in which the dataset to be defined\n");
-	printf("  -v, --volume	  Specifies the volume serial to contain the dataset\n");
-	printf("  -u, --unit		Specifies the unit type to which a dataset to be allocated\n");
-	printf("  -m, --member	  Specifies the member name of the PDS dataset\n");
-	printf("  -o, --dsorg	   Specifies the dataset organization\n");
-	printf("  -f, --recfm	   Specifies the record format\n");
-	printf("  -b, --blksize	 Specifies the block size\n");
-	printf("  -l, --lrecl	   Specifies the record length\n");
-	printf("  -k, --keylen	  Specifies the key length\n");
-	printf("  -p, --keypos	  Specifies the key position\n");
-	printf("  -s, --space	   Specifies the space parameter (TRK/CYL/unit,primary,second,directory)\n");
-	printf("  -x, --expdt	   Specifies the expiration date (in YYYYMMDD format)\n");
-	printf("  -r, --retpd	   Specifies the retention period (number of days)\n");
+	printf("  -c, --catalog     Specifies the catalog name in which the dataset to be defined\n");
+	printf("  -v, --volume      Specifies the volume serial to contain the dataset\n");
+	printf("  -u, --unit        Specifies the unit type to which a dataset to be allocated\n");
+	printf("  -m, --member      Specifies the member name of the PDS dataset\n");
+	printf("  -o, --dsorg       Specifies the dataset organization\n");
+	printf("  -f, --recfm       Specifies the record format\n");
+	printf("  -b, --blksize     Specifies the block size\n");
+	printf("  -l, --lrecl       Specifies the record length\n");
+	printf("  -k, --keylen      Specifies the key length\n");
+	printf("  -p, --keypos      Specifies the key position\n");
+	printf("  -s, --space       Specifies the space parameter (TRK/CYL/unit,primary,second,directory)\n");
+	printf("  -x, --expdt       Specifies the expiration date (in YYYYMMDD format)\n");
+	printf("  -r, --retpd       Specifies the retention period (number of days)\n");
 	printf("  -N, --nocatalog   Do not catalog the dataset newly created\n");
 	printf("  -R, --recatalog   Define only the catalog entry for the dataset\n");
 	printf("\n");
