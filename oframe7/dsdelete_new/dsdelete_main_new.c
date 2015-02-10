@@ -312,14 +312,14 @@ int check_args(int argc, char *argv[])
 int print_usage()
 {
 	printf("Usage: dsdelete [options] <dsname>\n");
-	printf("<dsname>			Specifies the dataset name to be deleted\n");
+	printf("<dsname>            Specifies the dataset name to be deleted\n");
 	printf("\n");
 
 	printf("Options:\n");
-	printf("  -c, --catalog	 Specifies the catalog name that contains the dataset entry\n");
-	printf("  -v, --volume	  Specifies the volume serial where the dataset to be found\n");
-	printf("  -m, --member	  Specifies the member name of the PDS dataset\n");
-	printf("  -I, --ignore	  Ignores parameter validation check errors and tries to proceed\n");
+	printf("  -c, --catalog     Specifies the catalog name that contains the dataset entry\n");
+	printf("  -v, --volume      Specifies the volume serial where the dataset to be found\n");
+	printf("  -m, --member      Specifies the member name of the PDS dataset\n");
+	printf("  -I, --ignore      Ignores parameter validation check errors and tries to proceed\n");
 	printf("  -U, --uncatalog   Deletes only the catalog entry for the dataset\n");
 	printf("\n");
 
