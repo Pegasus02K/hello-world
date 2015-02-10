@@ -210,7 +210,7 @@ int main(int argc, char *argv[])
 	{	// an error occurred
 		fprintf(stderr, "dsdelete: ***An error occurred in server OFRUISVRDSDEL->%s\n", tpstrerror(tperrno));
 		retval = fbget(rcv_buf, FB_RETMSG, retmsg, 0);		
-		fprintf(stderr, "----------------Return message----------------\n%s----------------------------------------------\n", retmsg);
+		fprintf(stderr, "----------------Return message----------------\n%s\n----------------------------------------------\n", retmsg);
 		goto _DSDELETE_MAIN_ERR_RETURN_03;
 	}
 	
