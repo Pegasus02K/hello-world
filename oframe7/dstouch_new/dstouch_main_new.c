@@ -29,6 +29,8 @@ extern char *dstouch_build_info;
 
 extern int dsalc_new_allocate_method;
 
+int error_return(int error_code, char *function_name);
+
 int check_args(int argc, char *argv[]);
 int print_usage();
 
@@ -197,6 +199,13 @@ _DSTOUCH_MAIN_ERR_RETURN_01:
 _DSTOUCH_MAIN_ERR_RETURN_00:
 	/* process returns here */
 	return retval;
+}
+
+
+int error_return(int error_code, char *function_name)
+{
+	fprintf(stderr, "dsmove: *** %s failed - errcode=%d\n", function_name, error_code);
+	return error_code;
 }
 
 
