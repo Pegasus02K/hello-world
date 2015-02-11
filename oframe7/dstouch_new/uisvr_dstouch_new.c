@@ -475,6 +475,8 @@ static int _touch_dataset(char *ret_msg)
     int rcount = 1;
     icf_result_t result;
 
+    ams_info_nvsm_t nvsm_info;
+
     /* set user catalog */
     retval = ams_use_catalog(user_catalog);
     if (retval < 0) {
