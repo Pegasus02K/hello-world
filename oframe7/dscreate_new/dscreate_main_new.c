@@ -140,7 +140,7 @@ int main(int argc, char *argv[])
 	
 	/* check dataset name */
 	retval = check_ds_name();
-	if(retval < 0) goto _DSCREATE_MAIN_ERR_RETURN_03;
+	if(retval < 0) goto _DSCREATE_MAIN_ERR_RETURN_02;
 	
 	if(dscreate_nocatalog)
 	{
@@ -186,7 +186,7 @@ int main(int argc, char *argv[])
 	}
 	
 	/* fbput FB_ARGS */	
-	sprintf(dscreate_args, "%s;%s;%s;%s;%s;%d;%d;%s;%s;%d;%d;%s;%s;%s;%s;%s",
+	sprintf(dscreate_args, "%s;%s;%s;%s;%s;%d;%d;%s;%s;%d;%d;%s;%s;%s;%s;%s;",
 			dscreate_member, dscreate_volser, dscreate_dsorg, dscreate_recfm, dscreate_unit, dscreate_lrecl,
 			dscreate_blksize, dscreate_expdt, dscreate_catalog, dscreate_keylen,
 			dscreate_keypos, dscreate_nocatalog_to_svr, dscreate_primary, dscreate_secondary, dscreate_avgval, dscreate_directory);
