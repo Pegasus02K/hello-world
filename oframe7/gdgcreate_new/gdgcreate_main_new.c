@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include <signal.h>
 #include <usrinc/atmi.h>
 #include <usrinc/fbuf.h>
 #include <usrinc/tmaxapi.h>
@@ -137,7 +138,8 @@ int main(int argc, char *argv[])
 
 	/* fbput FB_ARGS */
 	sprintf(gdgcreate_args, "%d;%s;%s;%d;%d;", gdgcreate_limit, gdgcreate_expdt, gdgcreate_catalog, gdgcreate_empty, gdgcreate_scratch);
-	retval = fbput(snd_buf, FB_ARGS, gdgcreate_gdgname, 0);
+
+	retval = fbput(snd_buf, FB_ARGS, gdgcreate_args, 0);
 	if (retval == -1)
 	{
 		fprintf(stderr, "gdgcreate: ***An error occurred while storing ARGS in field buffer->%s\n", fbstrerror(fberror)); 

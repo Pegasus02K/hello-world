@@ -70,7 +70,7 @@ void OFRUISVRDSCRE(TPSVCINFO *tpsvcinfo)
    
     char r_type;
     char r_token[SAFX_TOKEN_SIZE];
-    char s_catalog[100];
+    char s_catalog[100] = {0,};
     char s_composed[256];
 
     char filepath[1024];
