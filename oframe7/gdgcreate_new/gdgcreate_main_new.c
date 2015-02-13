@@ -38,6 +38,24 @@ int validate_param();
 
 int log_a_record(char *title, char *record, int rcode);
 
+static void _signal_handler(int signo)
+{
+	switch(signo)
+	{
+		case SIGINT:
+			printf("Caught SIGINT!\n");
+			dscom_tool_logout();
+			break;
+		case SIGTERM:
+			printf("Caught SIGTERM!\n");
+			dscom_tool_logout();
+			break;
+		default:
+			fprintf(stderr, "Unexpected signal!\n");
+			exit(EXIT_FAILURE);
+	}
+	exit(EXIT_SUCCESS);
+}
 
 int main(int argc, char *argv[])
 {
@@ -77,7 +95,17 @@ int main(int argc, char *argv[])
 	retval = dscom_tool_login("GDGCREATE");
 	if( retval < 0 ) goto _GDGCREATE_MAIN_ERR_RETURN_01;
 
-// should the signal catch process be added here?
+	/* catch signals */
+	if(signal(SIGINT, _signal_handler) == SIG_ERR)
+	{
+		fprintf(stderr, "Cannot handle SIGINT!\n");
+		exit(EXIT_FAILURE);
+	}
+	if(signal(SIGTERM, _signal_handler) == SIG_ERR)
+	{
+		fprintf(stderr, "Cannot handle SIGTERM!\n");
+		exit(EXIT_FAILURE);
+	}
 		
 	/* initialize user return code */
 	tpurcode = 0;
@@ -87,7 +115,7 @@ int main(int argc, char *argv[])
 	if(snd_buf == NULL)
 	{
 		fprintf(stderr, "gdgcreate: ***Couldn't allocate send buffer->%s\n",tpstrerror(tperrno)); 
-		goto _DSTOUCH_MAIN_ERR_RETURN_02;
+		goto _GDGCREATE_MAIN_ERR_RETURN_02;
 	}
 	
 	/* allocate receive buffer */
@@ -96,7 +124,7 @@ int main(int argc, char *argv[])
 	{
 		fprintf(stderr, "gdgcreate: ***Couldn't allocate send buffer->%s\n",tpstrerror(tperrno)); 
 		tpfree((char *)snd_buf);
-		goto _DSTOUCH_MAIN_ERR_RETURN_02;
+		goto _GDGCREATE_MAIN_ERR_RETURN_02;
 	}
 	
 	/* fbput FB_DSNAME */
@@ -104,32 +132,16 @@ int main(int argc, char *argv[])
 	if (retval == -1)
 	{
 		fprintf(stderr, "gdgcreate: ***An error occurred while storing DSNAME in field buffer->%s\n", fbstrerror(fberror)); 
-		goto _DSTOUCH_MAIN_ERR_RETURN_03;
+		goto _GDGCREATE_MAIN_ERR_RETURN_03;
 	}
-	
-	/* fbput FB_DSNAME */
-	retval = fbput(snd_buf, FB_DSNAME, gdgcreate_gdgname, 0);
-	if (retval == -1)
-	{
-		fprintf(stderr, "gdgcreate: ***An error occurred while storing DSNAME in field buffer->%s\n", fbstrerror(fberror)); 
-		goto _DSTOUCH_MAIN_ERR_RETURN_03;
-	}
-	
-	/* fbput FB_DSNAME */
-	retval = fbput(snd_buf, FB_DSNAME, gdgcreate_gdgname, 0);
-	if (retval == -1)
-	{
-		fprintf(stderr, "gdgcreate: ***An error occurred while storing DSNAME in field buffer->%s\n", fbstrerror(fberror)); 
-		goto _DSTOUCH_MAIN_ERR_RETURN_03;
-	}
-	
+
 	/* fbput FB_ARGS */
 	sprintf(gdgcreate_args, "%d;%s;%s;%d;%d;", gdgcreate_limit, gdgcreate_expdt, gdgcreate_catalog, gdgcreate_empty, gdgcreate_scratch);
 	retval = fbput(snd_buf, FB_ARGS, gdgcreate_gdgname, 0);
 	if (retval == -1)
 	{
 		fprintf(stderr, "gdgcreate: ***An error occurred while storing ARGS in field buffer->%s\n", fbstrerror(fberror)); 
-		goto _DSTOUCH_MAIN_ERR_RETURN_03;
+		goto _GDGCREATE_MAIN_ERR_RETURN_03;
 	}
 	
 	/* tmax service call */
@@ -139,7 +151,7 @@ int main(int argc, char *argv[])
 		fprintf(stderr, "gdgcreate: ***An error occurred in server OFRUISVRGDGCRE->%s\n", tpstrerror(tperrno));
 		retval = fbget(rcv_buf, FB_RETMSG, retmsg, 0);		
 		fprintf(stderr, "----------------Return message----------------\n%s\n----------------------------------------------\n", retmsg);
-		goto _DSTOUCH_MAIN_ERR_RETURN_03;
+		goto _GDGCREATE_MAIN_ERR_RETURN_03;
 	}
 
 	/* print a log message */
