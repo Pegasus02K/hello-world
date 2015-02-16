@@ -190,9 +190,9 @@ _DSMOVE_MAIN_ERR_RETURN_01:
 
 _DSMOVE_MAIN_ERR_RETURN_00:
 	/* process returns here */
-	if (!retval)
+	if (retval)
 	{
-		printf("ABNORMALLY FINISHED.\n");
+		printf("ABNORMALLY FINISHED (Return value: %d)\n",retval);
 		fflush(stdout);
 	}
 	return retval;
