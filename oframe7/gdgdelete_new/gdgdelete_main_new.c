@@ -1,3 +1,24 @@
+/* Generation Data Group Delete
+ *
+ * Description:
+ *      Delete an existing GDG
+ *
+ * Used service:
+ *      OFRUISVRGDGDEL
+ *
+ * To service:
+ *      FB_TACF_TOKEN(string): TACF token
+ *      FB_DSNAME(string): GDG name
+ *      FB_CATNAME(string): catalog name (optional)
+ *      FB_TYPE(string): delete option for Forced (optional)
+ *
+ * From service:
+ *      FB_RETMSG(string): error message
+ *
+ * NOTE:
+ * Should the wildcard option for gdgname be checked?
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
