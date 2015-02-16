@@ -1,10 +1,10 @@
 /* Dataset Move
  *
- * Used service:
- *      OFRUISVRDSMOVE2
- *
  * Description:
  *      Move or rename an existing dataset
+ *
+ * Used service:
+ *      OFRUISVRDSMOVE2
  * 
  * To service:
  *      FB_TACF_TOKEN(string): TACF token
