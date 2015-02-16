@@ -1,3 +1,33 @@
+/* Dataset Create
+ *
+ * Description:
+ *      Create a new dataset.
+ *
+ * Used service:
+ *      OFRUISVRDSCRE
+ *
+ * To service:
+ *      FB_TACF_TOKEN(string): TACF token 
+ *      FB_DSNAME(string): dataset name
+ *      FB_ARGS(string): dataset attributes
+ *      FB_TYPE(char): create options (optional)
+ *
+ * Format(FB_ARGS):
+ *      member;volume;dsorg;recfm;unit;lrecl;blksize;expdt;
+ *      usercat;keylen;keypos;nocatalog;primary;secondary;avgval;
+ *      directory;
+ *
+ * Format(FB_TYPE):
+ *      R: define only the catalog entry for the dataset (recatalog)
+ *      N: do not catalog the dataset newly created (nocatalog)
+ *
+ * From service:
+ *      FB_RETMSG(strong): error message
+ *
+ * NOTE:
+ * retpd parameter in not used in current service  
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -16,10 +46,8 @@
 #include "dscom.h"
 #include "nvsm.h"
 
-
 extern char *dscreate_version;
 extern char *dscreate_build_info;
-
 
 char dscreate_dsname[DS_DSNAME_LEN + 2] = {0,};
 
