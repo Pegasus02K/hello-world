@@ -18,5 +18,6 @@ int main()
   printf("added this line for the hotfix1\n");
 
   printf("Tested merge conflict. solved confilct and now ready to merge\n");
+  printf("test git diff");
   return 0;
 }
