@@ -1,3 +1,29 @@
+/* Dataset Delete
+ *
+ * Used service:
+ *      OFRUISVRDSDEL
+ *
+ * Description:
+ *      Delete an existing dataset.
+ *
+ * To service:
+ *      FB_TACF_TOKEN(string): TACF token
+ *      FB_DSNAME(string): dataset name
+ *      FB_CATNAME(string): catalog name (optional)
+ *      FB_VOLUME(string): volume serial (optional)
+ *      FB_TYPE(char): delete options (optional)
+ *
+ * Format(FB_TYPE):
+ *      F: delete catalog entry even if the dataset does not exist (force)
+ *      U: delete only the catalog entry for the dataset (uncatalog)
+ *
+ * From service
+ *      FB_RETMSG(string): error message
+ *
+ * NOTE:
+ * use of -I(ignore) option should be reconsidered
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -18,7 +44,6 @@
 extern char *dsdelete_version;
 extern char *dsdelete_build_info;
 
-
 char dsdelete_dsname[DS_DSNAME_LEN + 2] = {0,};
 
 char dsdelete_catalog[DS_DSNAME_LEN + 2] = {0,};
@@ -31,7 +56,6 @@ char dsdelete_dsnwmem[DS_DSNAME_LEN + NVSM_MEMBER_LEN + 2 +2] = {0,};
 int dsdelete_ignore = 0;
 int dsdelete_uncatalog = 0;
 int dsdelete_cataloged = 0;
-
 
 int error_return(int error_code, char *function_name);
 
