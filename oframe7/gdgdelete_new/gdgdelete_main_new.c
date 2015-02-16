@@ -23,7 +23,6 @@ char gdgdelete_catalog[DS_DSNAME_LEN + 2] = {0,};
 
 int gdgdelete_force = 0;
 
-
 int error_return(int error_code, char *function_name);
 int system_error(char *function_name);
 
