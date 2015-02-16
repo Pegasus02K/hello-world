@@ -1,3 +1,23 @@
+/* Generation Data Group Create
+ *
+ * Description:
+ *      Create a new GDG
+ *
+ * Used service:
+ *      OFRUISVRGDGCRE
+ *
+ * To service:
+ *      FB_TACF_TOKEN(string): TACF token
+ *      FB_DSNAME(string): GDG name
+ *      FB_ARGS(string): GDG attributes
+ *
+ * Format(FB_ARGS):
+ *      limit;expire;usercat;empty;scratch;
+ *
+ * Froem service:
+ *      FB_RETMSG(string): error message
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -12,10 +32,8 @@
 #include "dscom.h"
 #include "nvsm.h"
 
-
 extern char *gdgcreate_version;
 extern char *gdgcreate_build_info;
-
 
 char gdgcreate_gdgname[DS_DSNAME_LEN + 2] = {0,};
 char gdgcreate_catalog[DS_DSNAME_LEN + 2] = {0,};
@@ -27,7 +45,6 @@ char gdgcreate_expdt[8+2] = {0,};
 
 int gdgcreate_empty = 0;
 int gdgcreate_scratch = 0;
-
 
 int error_return(int error_code, char *function_name);
 int system_error(char *function_name);
