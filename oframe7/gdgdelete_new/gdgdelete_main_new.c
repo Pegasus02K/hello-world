@@ -21,7 +21,7 @@ extern char *gdgdelete_build_info;
 char gdgdelete_gdgname[DS_DSNAME_LEN + 2] = {0,};
 char gdgdelete_catalog[DS_DSNAME_LEN + 2] = {0,};
 
-char gdgdelete_force = 0;
+int gdgdelete_force = 0;
 
 
 int error_return(int error_code, char *function_name);
@@ -144,8 +144,7 @@ int main(int argc, char *argv[])
 // force option should be specified here
 	/* fbput FB_TYPE */
 	if (gdgdelete_force)
-		
-	retval = fbput(snd_buf, FB_TYPE, gdgdelete_catalog, 0);
+		retval = fbput(snd_buf, FB_TYPE, "F", 0);
 	if (retval == -1)
 	{
 		fprintf(stderr, "gdgdelete: ***An error occurred while storing TYPE in field buffer->%s\n", fbstrerror(fberror)); 
@@ -222,7 +221,7 @@ int check_args(int argc, char *argv[])
 
 		/* check if -F option is specified */
 		} else if( ! strcmp(argv[i], "-F") || ! strcmp(argv[i], "--force") ) {
-			gdgdelete_force = 'F';
+			gdgdelete_force = 1;
 
 		/* otherwise <gdgname> specified */
 		} else {
