@@ -1,3 +1,28 @@
+/* Dataset Copy
+ *
+ * Description:
+ *      Copy an Existing Dataset
+ * 
+ * Used service:
+ *      OFRUISVRDSCOPY2
+ *
+ * To service:
+ *      FB_TACF_TOKEN(string): TACF token
+ *      FB_DSNAME(string): source dataset name
+ *      FB_CATNAME(string): catalog name of the task (optional)
+ *      FB_VOLUME(string): source volume serial (optional)
+ *      FB_ARGS(string): destination parameters
+ *
+ * Format(FB_ARGS):
+ *      dst_dsname;dst_volser
+ *    - dst_dsname: destination dataset name (optional)
+ *    - dst_volser: target volume serial (optional)
+ *    * NOTE: at least one destination parameter is compulsory
+ *
+ * From service:
+ *      FB_RETMSG(string): error message
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -15,7 +40,6 @@
 #include "ds.h"
 #include "dscom.h"
 #include "nvsm.h"
-
 
 extern char *dscopy_version;
 extern char *dscopy_build_info;
