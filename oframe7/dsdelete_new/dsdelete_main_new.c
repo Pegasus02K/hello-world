@@ -1,10 +1,10 @@
 /* Dataset Delete
  *
+ * Description:
+ *      Delete an existing dataset
+ *
  * Used service:
  *      OFRUISVRDSDEL
- *
- * Description:
- *      Delete an existing dataset.
  *
  * To service:
  *      FB_TACF_TOKEN(string): TACF token
