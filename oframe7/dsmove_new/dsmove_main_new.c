@@ -14,9 +14,9 @@
  *      FB_ARGS(string): destination parameters
  *
  * Format(FB_ARGS):
- *      dest_dsname;target_volser
- *    - dest_dsname: destination dataset name (optional)
- *    - target_volser: target volume serial (optional)
+ *      dst_dsname;dst_volser
+ *    - dst_dsname: destination dataset name (optional)
+ *    - dst_volser: destination volume serial (optional)
  *    * NOTE: at least one destination parameter is compulsory
  *
  * From service:
