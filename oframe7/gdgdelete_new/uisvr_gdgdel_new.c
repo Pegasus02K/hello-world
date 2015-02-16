@@ -28,6 +28,7 @@
  *      FB_TACF_TOKEN(string): TACF token
  *      FB_DSNAME(string): GDG name
  *      FB_CATNAME(string): catalog name
+ *      FB_TYPE(string): delete option for Forced (optional)
  *
  * Output:
  *      FB_RETMSG(string): error message
