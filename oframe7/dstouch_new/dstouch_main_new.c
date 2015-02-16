@@ -1,3 +1,25 @@
+/* Dataset Touch
+ *
+ * Description:
+ *      Update dataset status
+ *
+ * Used service:
+ *      OFRUISVRDSTOUCH
+ *
+ * To service:
+ *      FB_TACF_TOKEN(string): TACF token
+ *      FB_DSNAME(string): dataset name
+ *      FB_MEMNAME(string): member name
+ *      FB_VOLUME(string): volume serial
+ *      FB_CATNAME(string): catalog name
+ *      FB_TIMESTAMP(string): creation date
+ *
+ * From service:
+ *      FB_RETMSG(string): error message
+ * NOTE:
+ * use of -s(system) option should be reconsidered
+ */
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
