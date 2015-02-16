@@ -1,6 +1,6 @@
 /* Dataset Move
  *
- * Usde service:
+ * Used service:
  *      OFRUISVRDSMOVE2
  *
  * Description:
