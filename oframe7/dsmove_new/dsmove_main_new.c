@@ -1,3 +1,28 @@
+/* Dataset Move
+ *
+ * Usde service:
+ *      OFRUISVRDSMOVE2
+ *
+ * Description:
+ *      Move or rename an existing dataset
+ * 
+ * To service:
+ *      FB_TACF_TOKEN(string): TACF token
+ *      FB_DSNAME(string): source dataset name
+ *      FB_CATNAME(string): catalog name of the task (optional)
+ *      FB_VOLUME(string): source volume serial (optional)
+ *      FB_ARGS(string): destination parameters
+ *
+ * Format(FB_ARGS):
+ *      dest_dsname;target_volser
+ *    - dest_dsname: destination dataset name (optional)
+ *    - target_volser: target volume serial (optional)
+ *    * NOTE: at least one destination parameter is compulsory
+ *
+ * From service:
+ *      FB_RETMSG(string): error message
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -13,8 +38,6 @@
 #include "ds.h"
 #include "dscom.h"
 #include "nvsm.h"
-
-
 
 extern char *dsmove_version;
 extern char *dsmove_build_info;
