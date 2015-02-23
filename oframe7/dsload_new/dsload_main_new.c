@@ -49,18 +49,16 @@ char dsload_volser[DS_VOLSER_LEN+2] = {0,};
 char dsload_deli_form[256] = {0,};
 char dsload_delimiter[256] = {0,};
 
-int _file_check = 1;
+int force_load = 0;
 
 extern char *dsload_version;
 extern char *dsload_build_info;
-
 
 int check_args(int argc, char *argv[]);
 int print_usage();
 int validate_param();
 
 int adjust_param();
-int convert_delim();
 
 static void _signal_handler(int signo)
 {
@@ -122,11 +120,7 @@ int main(int argc, char *argv[])
 	printf("Destination File   : [%s]\n", dsload_dstpath);
 	printf("Delimiter          : [%s]\n", dsload_deli_form);
 	printf("\n");
-
-	/* convert delimeter */
-	retval = convert_delim();
-	if (retval < 0) goto _DSLOAD_MAIN_ERR_RETURN_00;
-
+	
 	/* tool login process */
 	retval = dscom_tool_login("DSLOAD");
 	if (retval < 0) goto _DSLOAD_MAIN_ERR_RETURN_01;
@@ -212,7 +206,7 @@ int main(int argc, char *argv[])
 	}
 	
 	/* fbput FB_TYPE */
-	if (!_file_check)
+	if (force_load)
 	{
 		retval = fbput(snd_buf, FB_TYPE, "F" , 0);
 		if (retval == -1)
@@ -302,7 +296,7 @@ int check_args(int argc, char *argv[])
 			}
 			i++;
 		} else if (!strcmp(argv[i],"-F") || !strcmp(argv[i],"--force")) {
-			_file_check = 0;
+			force_load = 1;
 		}
 		i++;
 	}
@@ -410,34 +404,21 @@ int adjust_param()
 }
 
 
-int convert_delim()
+int log_a_record(char *title, char *record, int rcode)
 {
-	int  length, i;
-	char ch, *ptr;
+	int retval, length; char buffer[4096], sysdate[16], systime[16], fpath[256];
 
-	/* initialize delimeter */
-	memset(dsload_delimiter,0x00,sizeof(dsload_delimiter));
-	ptr = dsload_delimiter;
+	strcpy(buffer, record); length = strlen(record);
+	sprintf(buffer + length, ",RCODE=%d", rcode);
 
-	/* convert delimeter */
-	if (dsload_deli_form[0]) {
-		length = strlen(dsload_deli_form);
-		for( i = 0; i < length; i++ ) {
-			if( dsload_deli_form[i] == '\\' && i+1 < length ) {
-				i++; ch = dsload_deli_form[i];
-				switch( ch ) {
-					case 'a': *ptr++ = '\a'; break; /* alert character */
-					case 'b': *ptr++ = '\b'; break; /* backspace */
-					case 'f': *ptr++ = '\f'; break; /* formfeed */
-					case 'n': *ptr++ = '\n'; break; /* newline */
-					case 'r': *ptr++ = '\r'; break; /* carriage return */
-					case 't': *ptr++ = '\t'; break; /* horizontal tab */
-					case 'v': *ptr++ = '\v'; break; /* vertical tab */
-					default : *ptr++ =  ch ; break; /* default case */
-				}
-			} else *ptr++ = dsload_deli_form[i];
-		}
-	}
+	retval = ofcom_msg_sys_time(sysdate, systime);
+	if( retval < 0 ) return error_return(retval, "ofcom_msg_sys_time()");
+
+	retval = ofcom_log_file_path2(OFCOM_LOG_TYPE_COMMAND, "dstool", sysdate, fpath);
+	if( retval < 0 ) return error_return(retval, "ofcom_log_file_path2()");
+
+	retval = ofcom_log_a_record2(fpath, systime, title, buffer, rcode);
+	if( retval < 0 ) return error_return(retval, "ofcom_log_a_record2()");
 
 	return 0;
 }
