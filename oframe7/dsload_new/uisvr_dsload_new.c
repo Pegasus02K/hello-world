@@ -638,6 +638,9 @@ static int _dsload_dataset(char *ret_msg)
         strcpy(s_composed, s_dsname);
     }
 
+	if (s_volser[0])
+		strcpy(req.volume.vlist,s_volser);
+
     /* set lock wait flag */
     req.lock.lock_wait = LOCKM_LOCK_WAIT_IMMEDIATE;
 

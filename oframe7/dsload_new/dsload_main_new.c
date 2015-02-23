@@ -64,9 +64,6 @@ int validate_param();
 int adjust_param();
 int convert_delim();
 
-int check_dataset_size(char *dsname, dsio_dcb_t **dcbs);
-int dsload_dataset_inner(int fdin, int fdout, int maxlen, char *delim);
-
 static void _signal_handler(int signo)
 {
 	switch(signo) {
@@ -120,7 +117,7 @@ int main(int argc, char *argv[])
 	if (retval < 0) goto _DSLOAD_MAIN_ERR_RETURN_00;
 
 	/* print load parameters */
-	printf("Source Dataset         : [%s]\n", dsload_dsname);
+	printf("Source Dataset     : [%s]\n", dsload_dsname);
 	printf("Source Member      : [%s]\n", dsload_member);
 	printf("Volser             : [%s]\n", dsload_volser);
 	printf("User Catalog       : [%s]\n", dsload_catalog);
@@ -217,7 +214,7 @@ int main(int argc, char *argv[])
 	}
 	
 	/* fbput FB_TYPE */
-	if (_file_check)
+	if (!_file_check)
 	{
 		retval = fbput(snd_buf, FB_TYPE, "F" , 0);
 		if (retval == -1)
@@ -367,7 +364,7 @@ int validate_param()
 	/* check if volser is specified */
 	if( dsload_volser[0] != '\0' ) {
 		/* check if volser is invalid */
-		if( dscom_check_dsload_volser(dsload_volser) < 0) {
+		if( dscom_check_volser(dsload_volser) < 0) {
 			fprintf(stderr, "dsload: *** invalid volser specified - volser=%s\n", dsload_volser);
 			return -1;
 		}
