@@ -81,7 +81,7 @@ static void _signal_handler(int signo)
 int main(int argc, char *argv[])
 {
 	int retval;
-//	char record[1024];
+	char record[1024];
 	/* TPCALL variables */
 	FBUF *snd_buf = NULL;
 	FBUF *rcv_buf = NULL;
@@ -112,14 +112,11 @@ int main(int argc, char *argv[])
 	retval = adjust_param();
 	if (retval < 0) goto _DSLOAD_MAIN_ERR_RETURN_00;
 
-	/* print load parameters */
-	printf("Source Dataset     : [%s]\n", dsload_dsname);
-	printf("Source Member      : [%s]\n", dsload_member);
-	printf("Volser             : [%s]\n", dsload_volser);
-	printf("User Catalog       : [%s]\n", dsload_catalog);
-	printf("Destination File   : [%s]\n", dsload_dstpath);
-	printf("Delimiter          : [%s]\n", dsload_deli_form);
-	printf("\n");
+	/* compose trace log record */
+	sprintf(record, "Source Dataset     : [%s]\nSource Member      : [%s]\nVolser             : [%s]\nUser Catalog       : [%s]\nDestination File   : [%s]\nDelimiter          : [%s]\n\n", dsload_dsname, dsload_member, dsload_volser, dsload_catalog, dsload_dstpath, dsload_deli_form);
+	
+	/* print a log message */
+	printf("DSLOAD\n%s", record); fflush(stdout);
 	
 	/* tool login process */
 	retval = dscom_tool_login("DSLOAD");
@@ -241,7 +238,7 @@ _DSLOAD_MAIN_ERR_RETURN_02:
 	
 _DSLOAD_MAIN_ERR_RETURN_01:
 	/* call a function to log a record */
-//	log_a_record("DSLOAD", record, retval);
+	log_a_record("DSLOAD", record, retval);
 	
 _DSLOAD_MAIN_ERR_RETURN_00:
 	/* process returns here */
