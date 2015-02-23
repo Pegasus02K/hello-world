@@ -101,7 +101,7 @@ void OFRUISVRGDGDEL(TPSVCINFO *tpsvcinfo)
 	if (retval < 0 && retval != SVRCOM_ERR_FBNOENT)
 	{
 		OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_SVRCOM_FUNCTION_ERROR, SERVICE_NAME, "svrcom_fbget", retval);
-		return retval;
+		goto _GDGDEL_MAIN_ERR_TPFAIL_01;
 	}
 
    	/* check if GDG name is invalid */
