@@ -36,7 +36,7 @@
  *      FB_TYPE(char): load options (multiple, optional)
  *
  *      FB_VOLUME(string): volume serial (optional)
- *      FB_ARGS(string): delimeter from tool
+ *      FB_ARGS(string): delimiter from tool
  *
  * Format(FB_TYPE):
  *      L: use the delimiter to separate each record
