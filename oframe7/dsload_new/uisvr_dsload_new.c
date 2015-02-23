@@ -196,7 +196,7 @@ void OFRUISVRDSLOAD(TPSVCINFO *tpsvcinfo)
     uisvr_logout_process();
 
     /* fbput ret_msg */
-    sprintf(ret_msg, "%s: Dataset Is Loaded Successfully.\nPath: [%s]\n", SERVICE_NAME, s_dstpath);
+    sprintf(ret_msg, "%s - Dataset is loaded successfully.\nPath: [%s]\n", SERVICE_NAME, s_dstpath);
     svrcom_fbput(snd_buf, FB_RETMSG, ret_msg, 0);
 
     /* service end */
