@@ -59,7 +59,10 @@ int check_args(int argc, char *argv[]);
 int print_usage();
 int validate_param();
 
+// later this may be removed
 int adjust_param();
+
+int log_a_record(char *title, char *record, int rcode);
 
 static void _signal_handler(int signo)
 {
