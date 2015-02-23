@@ -41,6 +41,9 @@
 #include "dscom.h"
 #include "nvsm.h"
 
+extern char *dsload_version;
+extern char *dsload_build_info;
+
 char dsload_dsname[DS_DSNAME_LEN + 2] = {0,};
 char dsload_member[NVSM_MEMBER_LEN + 2] = {0,};
 char dsload_catalog[DS_DSNAME_LEN + 2] = {0,};
@@ -48,11 +51,9 @@ char dsload_dstpath[256] = {0,};
 char dsload_volser[DS_VOLSER_LEN+2] = {0,};
 char dsload_deli_form[256] = {0,};
 char dsload_delimiter[256] = {0,};
-
 int force_load = 0;
 
-extern char *dsload_version;
-extern char *dsload_build_info;
+int error_return(int error_code, char *function_name);
 
 int check_args(int argc, char *argv[]);
 int print_usage();
@@ -243,6 +244,13 @@ _DSLOAD_MAIN_ERR_RETURN_01:
 _DSLOAD_MAIN_ERR_RETURN_00:
 	/* process returns here */
 	return retval;
+}
+
+
+int error_return(int error_code, char *function_name)
+{
+	fprintf(stderr, "dsmove: *** %s failed - errcode=%d\n", function_name, error_code);
+	return error_code;
 }
 
 
