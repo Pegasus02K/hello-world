@@ -14,7 +14,7 @@
  *        FB_FILEPATH(string): dataset filepath
  *        FB_TYPE(char): load options (multiple, optional)
  *        FB_VOLUME(string): volume serial (optional)
- *        FB_ARGS(string): delimiter 
+ *        FB_ARGS(string): delimeter from tool 
  *
  * Format(FB_TYPE):
  *        F: ignore existance of the destination file
@@ -50,7 +50,6 @@ char dsload_catalog[DS_DSNAME_LEN + 2] = {0,};
 char dsload_dstpath[256] = {0,};
 char dsload_volser[DS_VOLSER_LEN+2] = {0,};
 char dsload_deli_form[256] = {0,};
-char dsload_delimiter[256] = {0,};
 int force_load = 0;
 
 int error_return(int error_code, char *function_name);
@@ -199,7 +198,7 @@ int main(int argc, char *argv[])
 	}
 	
 	/* fbput FB_ARGS */
-	retval = fbput(snd_buf, FB_ARGS, dsload_delimiter, 0);
+	retval = fbput(snd_buf, FB_ARGS, dsload_deli_form, 0);
 	if (retval == -1)
 	{
 		fprintf(stderr, "dsload: ***An error occurred while storing FB_ARGS in field buffer->%s\n", fbstrerror(fberror)); 
