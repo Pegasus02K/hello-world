@@ -54,9 +54,9 @@ static char user_catalog[DS_DSNAME_LEN + 2];
 static char src_filepath[256];
 static char deli_form[256], delimiter[256];
 
-static int _fill_spaces = 0;
-static int _remove_source = 0;
-static int _test_mode = 0;
+static int _fill_spaces;
+static int _remove_source;
+static int _test_mode;
 
 static int _get_params(FBUF *rcv_buf);
 static int _validate_param(char *ret_msg);
@@ -81,6 +81,10 @@ void OFRUISVRDSSAVE(TPSVCINFO *tpsvcinfo)
     FBUF   *rcv_buf = NULL;
     FBUF   *snd_buf = NULL;
     char    ret_msg[1024] = {'\0',};
+
+	_fill_spaces = 0;
+	_remove_source = 0;
+	_test_mode = 0;
 
     /* service start */
     retval = svrcom_svc_start(SERVICE_NAME);
