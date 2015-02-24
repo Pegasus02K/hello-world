@@ -281,6 +281,7 @@ static int _get_params(FBUF *rcv_buf)
             _remove_source = 1;
         } else if (save_type == 'T' || save_type == 't') {
             _test_mode = 1;
+        }
     }
 
     return 0;

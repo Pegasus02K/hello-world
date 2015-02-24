@@ -124,7 +124,7 @@ int main(int argc, char *argv[])
 
 	/* tool login process */
 	retval = dscom_tool_login("DSSAVE");
-	if (retval < 0) goto _DSSAVE_MAIN_ERR_RETURN_00;
+	if (retval < 0) goto _DSSAVE_MAIN_ERR_RETURN_01;
 
 	/* catch signals */
 	if (signal(SIGINT, _signal_handler) == SIG_ERR)
@@ -199,7 +199,7 @@ int main(int argc, char *argv[])
 	}
 	
 	/* fbput FB_ARGS */
-	retval = fbput(snd_buf, FB_ARGS, dssave_deliform, 0);
+	retval = fbput(snd_buf, FB_ARGS, dssave_deli_form, 0);
 	if (retval == -1)
 	{
 		fprintf(stderr, "dssave: ***An error occurred while storing FILEPATH in field buffer->%s\n", fbstrerror(fberror)); 
@@ -345,8 +345,7 @@ int print_usage()
 
 	return 0;
 }
-UIS0104E, %s: system(%s) failed. err=%s,rc=%d
-UIS0031E, %s: file read error. fd=%d,err=%s
+
 
 int adjust_param()
 {
