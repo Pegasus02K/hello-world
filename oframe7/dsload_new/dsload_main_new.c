@@ -14,7 +14,7 @@
  *        FB_FILEPATH(string): dataset filepath
  *        FB_TYPE(char): load options (multiple, optional)
  *        FB_VOLUME(string): volume serial (optional)
- *        FB_ARGS(string): delimeter from tool 
+ *        FB_ARGS(string): delimiter 
  *
  * Format(FB_TYPE):
  *        F: ignore existance of the destination file
