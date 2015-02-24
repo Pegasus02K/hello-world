@@ -104,6 +104,13 @@ void OFRUISVRDSSAVE(TPSVCINFO *tpsvcinfo)
         retval = SVRCOM_ERR_TPALLOC; goto _DSSAVE_MAIN_ERR_TPFAIL_00;
     }
    
+    /* initialize parameter */
+    memset(des_dataset,0x00,sizeof(des_dataset));
+    memset(des_member,0x00,sizeof(des_member));
+    memset(user_catalog,0x00,sizeof(user_catalog));
+    memset(src_filepath,0x00,sizeof(src_filepath));
+    memset(deli_form,0x00,sizeof(deli_form));
+   
     /* get parameters */
     retval = _get_params(rcv_buf);
     if (retval < 0) {
