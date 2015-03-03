@@ -141,7 +141,7 @@ int main(int argc, char *argv[])
 	if(retval < 0) goto _DSCREATE_MAIN_ERR_RETURN_00;
 	
 	/* convert retpd to expdt */
-	sprintf(dscreate_expdt, "%08d", ofcom_add_days(ofcom_sys_date(), retpd));
+	sprintf(dscreate_expdt, "%08d", ofcom_add_days(ofcom_sys_date(), dscreate_retpd));
 
 	/* compose trace log record */
 	sprintf(record, "DSNAME=%s,CATALOG=%s,VOLSER=%s,MEMBER=%s",
