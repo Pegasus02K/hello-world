@@ -19,7 +19,7 @@
  * Format(FB_TYPE):
  *        F: ignore existance of the destination file
  *
- * Return from service:
+ * Return values from service:
  *        FB_RETMSG(string): error message
  */
 
@@ -53,14 +53,11 @@ char dsload_deli_form[256] = {0,};
 int force_load = 0;
 
 int error_return(int error_code, char *function_name);
-
 int check_args(int argc, char *argv[]);
 int print_usage();
 int validate_param();
-
-// later this may be removed
-int adjust_param();
-
+int set_field_buffer(FBUF * fbuf);
+int adjust_param(); // later this may be removed
 int log_a_record(char *title, char *record, int rcode);
 
 static void _signal_handler(int signo)
@@ -157,64 +154,10 @@ int main(int argc, char *argv[])
 		goto _DSLOAD_MAIN_ERR_RETURN_02;
 	}
 	
-	/* fbput FB_DSNAME */
-	retval = fbput(snd_buf, FB_DSNAME, dsload_dsname, 0);
-	if (retval == -1)
-	{
-		fprintf(stderr, "dsload: ***An error occurred while storing DSNAME in field buffer->%s\n", fbstrerror(fberror)); 
+	/* set field buffer parameters */
+	retval = set_field_buffer(snd_buf);
+	if (retval < 0)
 		goto _DSLOAD_MAIN_ERR_RETURN_03;
-	}
-	
-	/* fbput FB_MEMNAME */
-	retval = fbput(snd_buf, FB_MEMNAME, dsload_member, 0);
-	if (retval == -1)
-	{
-		fprintf(stderr, "dsload: ***An error occurred while storing MEMNAME in field buffer->%s\n", fbstrerror(fberror)); 
-		goto _DSLOAD_MAIN_ERR_RETURN_03;
-	}
-	
-	/* fbput FB_CATNAME */
-	retval = fbput(snd_buf, FB_CATNAME, dsload_catalog, 0);
-	if (retval == -1)
-	{
-		fprintf(stderr, "dsload: ***An error occurred while storing CATNAME in field buffer->%s\n", fbstrerror(fberror)); 
-		goto _DSLOAD_MAIN_ERR_RETURN_03;
-	}
-	
-	/* fbput FB_FILEPATH */
-	retval = fbput(snd_buf, FB_FILEPATH, dsload_dstpath, 0);
-	if (retval == -1)
-	{
-		fprintf(stderr, "dsload: ***An error occurred while storing FILEPATH in field buffer->%s\n", fbstrerror(fberror)); 
-		goto _DSLOAD_MAIN_ERR_RETURN_03;
-	}
-	
-	/* fbput FB_VOLUME */
-	retval = fbput(snd_buf, FB_VOLUME, dsload_volser, 0);
-	if (retval == -1)
-	{
-		fprintf(stderr, "dsload: ***An error occurred while storing VOLUME in field buffer->%s\n", fbstrerror(fberror)); 
-		goto _DSLOAD_MAIN_ERR_RETURN_03;
-	}
-	
-	/* fbput FB_ARGS */
-	retval = fbput(snd_buf, FB_ARGS, dsload_deli_form, 0);
-	if (retval == -1)
-	{
-		fprintf(stderr, "dsload: ***An error occurred while storing FB_ARGS in field buffer->%s\n", fbstrerror(fberror)); 
-		goto _DSLOAD_MAIN_ERR_RETURN_03;
-	}
-	
-	/* fbput FB_TYPE */
-	if (force_load)
-	{
-		retval = fbput(snd_buf, FB_TYPE, "F" , 0);
-		if (retval == -1)
-		{
-			fprintf(stderr, "dsload: ***An error occurred while storing CATNAME in field buffer->%s\n", fbstrerror(fberror)); 
-			goto _DSLOAD_MAIN_ERR_RETURN_03;
-		}
-	}
 	
 	/* tmax service call */
 	retval = tpcall("OFRUISVRDSLOAD", (char *)snd_buf, 0, (char **)&rcv_buf, &rcv_len, TPNOFLAGS);
@@ -407,6 +350,73 @@ int adjust_param()
 		}
 	}
 
+	return 0;
+}
+
+
+int set_field_buffer(FBUF * fbuf)
+{
+	int retval;
+	
+	/* fbput FB_DSNAME */
+	retval = fbput(fbuf, FB_DSNAME, dsload_dsname, 0);
+	if (retval == -1)
+	{
+		fprintf(stderr, "dsload: ***An error occurred while storing DSNAME in field buffer->%s\n", fbstrerror(fberror)); 
+		return -1;
+	}
+	
+	/* fbput FB_MEMNAME */
+	retval = fbput(fbuf, FB_MEMNAME, dsload_member, 0);
+	if (retval == -1)
+	{
+		fprintf(stderr, "dsload: ***An error occurred while storing MEMNAME in field buffer->%s\n", fbstrerror(fberror)); 
+		return -1;
+	}
+	
+	/* fbput FB_CATNAME */
+	retval = fbput(fbuf, FB_CATNAME, dsload_catalog, 0);
+	if (retval == -1)
+	{
+		fprintf(stderr, "dsload: ***An error occurred while storing CATNAME in field buffer->%s\n", fbstrerror(fberror)); 
+		return -1;
+	}
+	
+	/* fbput FB_FILEPATH */
+	retval = fbput(fbuf, FB_FILEPATH, dsload_dstpath, 0);
+	if (retval == -1)
+	{
+		fprintf(stderr, "dsload: ***An error occurred while storing FILEPATH in field buffer->%s\n", fbstrerror(fberror)); 
+		return -1;
+	}
+	
+	/* fbput FB_VOLUME */
+	retval = fbput(fbuf, FB_VOLUME, dsload_volser, 0);
+	if (retval == -1)
+	{
+		fprintf(stderr, "dsload: ***An error occurred while storing VOLUME in field buffer->%s\n", fbstrerror(fberror)); 
+		return -1;
+	}
+	
+	/* fbput FB_ARGS */
+	retval = fbput(fbuf, FB_ARGS, dsload_deli_form, 0);
+	if (retval == -1)
+	{
+		fprintf(stderr, "dsload: ***An error occurred while storing FB_ARGS in field buffer->%s\n", fbstrerror(fberror)); 
+		return -1;
+	}
+	
+	/* fbput FB_TYPE */
+	if (force_load)
+	{
+		retval = fbput(fbuf, FB_TYPE, "F" , 0);
+		if (retval == -1)
+		{
+			fprintf(stderr, "dsload: ***An error occurred while storing CATNAME in field buffer->%s\n", fbstrerror(fberror)); 
+			return -1;
+		}
+	}
+	
 	return 0;
 }
 
