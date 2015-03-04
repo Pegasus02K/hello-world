@@ -47,19 +47,16 @@ extern char *dscopy_build_info;
 char dscopy_src_dsname[DS_DSNAME_LEN + 2] = {0,};
 char dscopy_src_catname[DS_DSNAME_LEN + 2] = {0,};
 char dscopy_src_volser[DS_VOLSER_LEN + 2] = {0,};
-
 char dscopy_dst_dsname[DS_DSNAME_LEN + 2] = {0,};
 char dscopy_dst_volser[DS_VOLSER_LEN + 2] = {0,};
 char dscopy_dst_args[128] = {0,};
 
 int error_return(int error_code, char *function_name);
 int system_error(char *function_name);
-
 int check_args(int argc, char *argv[]);
 int print_usage();
-
 int validate_param();
-
+int set_field_buffer(FBUF * fbuf);
 int log_a_record(char *title, char *record, int rcode);
 
 static void _signal_handler(int signo)
