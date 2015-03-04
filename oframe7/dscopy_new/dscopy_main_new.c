@@ -6,7 +6,7 @@
  * Used service:
  *      OFRUISVRDSCOPY2
  *
- * To service:
+ * Parameters to service:
  *      FB_TACF_TOKEN(string): TACF token
  *      FB_DSNAME(string): source dataset name
  *      FB_CATNAME(string): catalog name of the task (optional)
@@ -19,7 +19,7 @@
  *    - dst_volser: destination volume serial (optional)
  *    * NOTE: at least one destination parameter is compulsory
  *
- * From service:
+ * Return values from service:
  *      FB_RETMSG(string): error message
  */
 
