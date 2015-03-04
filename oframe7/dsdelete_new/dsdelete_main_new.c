@@ -342,7 +342,7 @@ int set_field_buffer(FBUF * fbuf)
 	int retval;
 
 	/* fbput FB_TACF_TOKEN */
-	retval = fbput(fbuf, FB_TACF_TOKEN, dsdelete_tacf_token, 0);
+	retval = fbput(fbuf, FB_TACF_TOKEN, tacf_token, 0);
 	if ( retval == -1 )
 	{
 		fprintf(stderr, "dsdelete: ***An error occurred while storing TACF_TOKEN in field buffer->%s\n", fbstrerror(fberror)); 
