@@ -64,8 +64,8 @@ int log_a_record(char *title, char *record, int rcode);
 
 
 int tacf_login();
-//char tjesmgr_tacf_token[SAFX_TOKEN_SIZE + 1];
-char tjesmgr_tacf_token[96 + 1] = {0,};
+//char dsdelete_tacf_token[SAFX_TOKEN_SIZE + 1];
+char dsdelete_tacf_token[96 + 1] = {0,};
 
 
 static void _signal_handler(int signo)
@@ -346,6 +346,14 @@ int validate_param()
 int set_field_buffer(FBUF * fbuf)
 {
 	int retval;
+
+	/* fbput FB_TACF_TOKEN */
+	retval = fbput(fbuf, FB_TACF_TOKEN, dsdelete_tacf_token, 0);
+	if ( retval == -1 )
+	{
+		fprintf(stderr, "dsdelete: ***An error occurred while storing TACF_TOKEN in field buffer->%s\n", fbstrerror(fberror)); 
+		return -1;
+	}
 	
 	/* fbput FB_DSNAME */
 	/* if member name is specified, put dsdelete_dsnwmem */
@@ -429,7 +437,7 @@ int log_a_record(char *title, char *record, int rcode)
 int tacf_login()
 {
 	int retval;
-	char *tjesmgr_loginfo;
+	char *tjesmgr_loginfo = {0,};
 	
 	int login_flag = 0;
 	int tacf_flag  = 0;
@@ -444,8 +452,8 @@ int tacf_login()
 	strcpy(config.entry_enpasswd, "ENPASSWD" );
 	
 	/* try TACF Login */
-	retval = login_tacf_token(tjesmgr_loginfo, &config, tjesmgr_tacf_token, login_flag, tacf_flag);
-	if ( rc < 0 ) 
+	retval = login_tacf_token(tjesmgr_loginfo, &config, dsdelete_tacf_token, login_flag, tacf_flag);
+	if ( retval < 0 ) 
 	{
 		fprintf(stderr, "TACF Login failed. errcode[%d]\n", retval);
 		return -1;
