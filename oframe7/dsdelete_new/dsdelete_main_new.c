@@ -6,7 +6,7 @@
  * Used service:
  *      OFRUISVRDSDEL
  *
- * To service:
+ * Parameters to service:
  *      FB_TACF_TOKEN(string): TACF token
  *      FB_DSNAME(string): dataset name
  *      FB_CATNAME(string): catalog name (optional)
@@ -17,7 +17,7 @@
  *      I: ignore parameter validation check
  *      U: delete only the catalog entry for the dataset (uncatalog)
  *
- * From service
+ * Return values from service
  *      FB_RETMSG(string): error message
  *
  */
@@ -43,11 +43,9 @@ extern char *dsdelete_version;
 extern char *dsdelete_build_info;
 
 char dsdelete_dsname[DS_DSNAME_LEN + 2] = {0,};
-
 char dsdelete_catalog[DS_DSNAME_LEN + 2] = {0,};
 char dsdelete_volser[DS_VOLSER_LEN + 2] = {0,};
 char dsdelete_member[NVSM_MEMBER_LEN + 2] = {0,};
-
 // dataset name with member name: dsname + '(' + member + ')'
 char dsdelete_dsnwmem[DS_DSNAME_LEN + NVSM_MEMBER_LEN + 2 +2] = {0,};
 
@@ -56,11 +54,10 @@ int dsdelete_uncatalog = 0;
 int dsdelete_cataloged = 0;
 
 int error_return(int error_code, char *function_name);
-
 int check_args(int argc, char *argv[]);
 int print_usage();
 int validate_param();
-
+int set_field_buffer(FBUF * fbuf);
 int log_a_record(char *title, char *record, int rcode);
 
 #define DSDELETE_RC_SUCCESS	 0
@@ -160,60 +157,9 @@ int main(int argc, char *argv[])
 		goto _DSDELETE_MAIN_ERR_RETURN_02;
 	}
 	
-	/* fbput FB_DSNAME */
-	/* if member name is specified, put dsdelete_dsnwmem */
-	if( dsdelete_member[0] != '\0' )
-	{
-		strcat(dsdelete_dsnwmem, dsdelete_dsname);
-		strcat(dsdelete_dsnwmem, "(");
-		strcat(dsdelete_dsnwmem, dsdelete_member);
-		strcat(dsdelete_dsnwmem, ")");
-		
-		retval = fbput(snd_buf, FB_DSNAME, dsdelete_dsnwmem, 0);
-	}
-	else
-		retval = fbput(snd_buf, FB_DSNAME, dsdelete_dsname, 0);
-	if ( retval == -1 )
-	{
-		fprintf(stderr, "dsdelete: ***An error occurred while storing DSNAME in field buffer->%s\n", fbstrerror(fberror)); 
+	retval = set_field_buffer(snd_buf);
+	if (retval < 0)
 		goto _DSDELETE_MAIN_ERR_RETURN_03;
-	}
-
-	/* fbput FB_CATNAME */
-	retval = fbput(snd_buf, FB_CATNAME, dsdelete_catalog, 0);
-	if ( retval == -1 )
-	{
-		fprintf(stderr, "dsdelete: ***An error occurred while storing CATNAME in field buffer->%s\n", fbstrerror(fberror)); 
-		goto _DSDELETE_MAIN_ERR_RETURN_03;
-	}
-
-	/* fbput FB_VOLUME */
-	retval = fbput(snd_buf, FB_VOLUME, dsdelete_volser, 0);
-	if ( retval == -1 )
-	{
-		fprintf(stderr, "dsdelete: ***An error occurred while storing VOLUME in field buffer->%s\n", fbstrerror(fberror)); 
-		goto _DSDELETE_MAIN_ERR_RETURN_03;
-	}
-
-	/* fbput FB_TYPE */
-	if ( dsdelete_uncatalog )
-	{
-		retval = fbput(snd_buf, FB_TYPE, "u", 0);
-		if (retval == -1)
-		{
-			fprintf(stderr, "dsdelete: ***An error occurred while storing TYPE(uncatalog option) in field buffer->%s\n", fbstrerror(fberror)); 
-			goto _DSDELETE_MAIN_ERR_RETURN_03;
-		}
-	}
-	if ( dsdelete_ignore )
-	{
-		retval = fbput(snd_buf, FB_TYPE, "I", 0);
-		if (retval == -1)
-		{
-			fprintf(stderr, "dsdelete: ***An error occurred while storing TYPE(ignore option) in field buffer->%s\n", fbstrerror(fberror)); 
-			goto _DSDELETE_MAIN_ERR_RETURN_03;
-		}
-	}
 	
 	/* tmax service call */
 	retval = tpcall("OFRUISVRDSDEL", (char *)snd_buf, 0, (char **)&rcv_buf, &rcv_len, TPNOFLAGS);
@@ -384,6 +330,69 @@ int validate_param()
 		}
 	}
 
+	return 0;
+}
+
+
+int set_field_buffer(FBUF * fbuf)
+{
+	int retval;
+	
+	/* fbput FB_DSNAME */
+	/* if member name is specified, put dsdelete_dsnwmem */
+	if( dsdelete_member[0] != '\0' )
+	{
+		strcat(dsdelete_dsnwmem, dsdelete_dsname);
+		strcat(dsdelete_dsnwmem, "(");
+		strcat(dsdelete_dsnwmem, dsdelete_member);
+		strcat(dsdelete_dsnwmem, ")");
+		
+		retval = fbput(snd_buf, FB_DSNAME, dsdelete_dsnwmem, 0);
+	}
+	else
+		retval = fbput(snd_buf, FB_DSNAME, dsdelete_dsname, 0);
+	if ( retval == -1 )
+	{
+		fprintf(stderr, "dsdelete: ***An error occurred while storing DSNAME in field buffer->%s\n", fbstrerror(fberror)); 
+		return -1;
+	}
+
+	/* fbput FB_CATNAME */
+	retval = fbput(snd_buf, FB_CATNAME, dsdelete_catalog, 0);
+	if ( retval == -1 )
+	{
+		fprintf(stderr, "dsdelete: ***An error occurred while storing CATNAME in field buffer->%s\n", fbstrerror(fberror)); 
+		return -1;
+	}
+
+	/* fbput FB_VOLUME */
+	retval = fbput(snd_buf, FB_VOLUME, dsdelete_volser, 0);
+	if ( retval == -1 )
+	{
+		fprintf(stderr, "dsdelete: ***An error occurred while storing VOLUME in field buffer->%s\n", fbstrerror(fberror)); 
+		return -1;
+	}
+
+	/* fbput FB_TYPE */
+	if ( dsdelete_uncatalog )
+	{
+		retval = fbput(snd_buf, FB_TYPE, "u", 0);
+		if (retval == -1)
+		{
+			fprintf(stderr, "dsdelete: ***An error occurred while storing TYPE(uncatalog option) in field buffer->%s\n", fbstrerror(fberror)); 
+			return -1;
+		}
+	}
+	if ( dsdelete_ignore )
+	{
+		retval = fbput(snd_buf, FB_TYPE, "I", 0);
+		if (retval == -1)
+		{
+			fprintf(stderr, "dsdelete: ***An error occurred while storing TYPE(ignore option) in field buffer->%s\n", fbstrerror(fberror)); 
+			return -1;
+		}
+	}
+	
 	return 0;
 }
 
