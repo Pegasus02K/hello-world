@@ -6,18 +6,18 @@
  * Used service:
  *      OFRUISVRDSTOUCH
  *
- * To service:
+ * Parameters to service:
  *      FB_TACF_TOKEN(string): TACF token
  *      FB_DSNAME(string): dataset name
  *      FB_MEMNAME(string): member name
  *      FB_VOLUME(string): volume serial
  *      FB_CATNAME(string): catalog name
  *      FB_TIMESTAMP(string): creation date
+ *      FB_TYPE(char): touch option for using system section
  *
- * From service:
+ * Return values from service:
  *      FB_RETMSG(string): error message
- * NOTE:
- * use of -s(system) option should be reconsidered
+ * 
  */
 
 #include <stdlib.h>
@@ -37,27 +37,22 @@
 #include "ds.h"
 #include "nvsm.h"
 
-char dstouch_dsname[DS_DSNAME_LEN + 2] = {0,};
+extern char *dstouch_version;
+extern char *dstouch_build_info;
 
+char dstouch_dsname[DS_DSNAME_LEN + 2] = {0,};
 char dstouch_catalog[DS_DSNAME_LEN + 2] = {0,};
 char dstouch_volser[DS_VOLSER_LEN + 2] = {0,};
 char dstouch_member[NVSM_MEMBER_LEN + 2] = {0,};
 char dstouch_credt[256] = {0,};
+int dstouch_use_syssec = 0;
 
-int dstouch_is_sysds = 0;
-
-extern char *dstouch_version;
-extern char *dstouch_build_info;
-
-extern int dsalc_new_allocate_method;
 
 int error_return(int error_code, char *function_name);
-
 int check_args(int argc, char *argv[]);
 int print_usage();
-
 int validate_param();
-
+int set_field_buffer(FBUF * fbuf);
 int log_a_record(char *title, char *record, int rcode);
 
 static void _signal_handler(int signo)
@@ -151,45 +146,10 @@ int main(int argc, char *argv[])
 		goto _DSTOUCH_MAIN_ERR_RETURN_02;
 	}
 	
-	/* fbput FB_DSNAME */
-	retval = fbput(snd_buf, FB_DSNAME, dstouch_dsname, 0);
-	if (retval == -1)
-	{
-		fprintf(stderr, "dstouch: ***An error occurred while storing DSNAME in field buffer->%s\n", fbstrerror(fberror)); 
+	/* set field buffer parameters */
+	retval = set_field_buffer(snd_buf);
+	if (retval < 0)
 		goto _DSTOUCH_MAIN_ERR_RETURN_03;
-	}
-	
-	/* fbput FB_MEMNAME */
-	retval = fbput(snd_buf, FB_MEMNAME, dstouch_member, 0);
-	if (retval == -1)
-	{
-		fprintf(stderr, "dstouch: ***An error occurred while storing MEMNAME in field buffer->%s\n", fbstrerror(fberror)); 
-		goto _DSTOUCH_MAIN_ERR_RETURN_03;
-	}
-	
-	/* fbput FB_VOLUME */
-	retval = fbput(snd_buf, FB_VOLUME, dstouch_volser, 0);
-	if (retval == -1)
-	{
-		fprintf(stderr, "dstouch: ***An error occurred while storing VOLUME in field buffer->%s\n", fbstrerror(fberror)); 
-		goto _DSTOUCH_MAIN_ERR_RETURN_03;
-	}
-	
-	/* fbput FB_CATNAME */
-	retval = fbput(snd_buf, FB_CATNAME, dstouch_catalog, 0);
-	if (retval == -1)
-	{
-		fprintf(stderr, "dstouch: ***An error occurred while storing CATNAME in field buffer->%s\n", fbstrerror(fberror)); 
-		goto _DSTOUCH_MAIN_ERR_RETURN_03;
-	}
-	
-	/* fbput FB_TIMESTAMP */
-	retval = fbput(snd_buf, FB_TIMESTAMP, dstouch_credt, 0);
-	if (retval == -1)
-	{
-		fprintf(stderr, "dstouch: ***An error occurred while storing TIMESTAMP in field buffer->%s\n", fbstrerror(fberror)); 
-		goto _DSTOUCH_MAIN_ERR_RETURN_03;
-	}
 	
 	/* tmax service call */
 	retval = tpcall("OFRUISVRDSTOUCH", (char *)snd_buf, 0, (char **)&rcv_buf, &rcv_len, TPNOFLAGS);
@@ -252,7 +212,7 @@ int check_args(int argc, char *argv[])
 		if( argv[i][0] == '-' ) {
 			if( ! strcmp(argv[i], "-s") ) {
 				if( mode != DATASET_NAME ) return -1;
-				dstouch_is_sysds = 1;
+				dstouch_use_syssec = 1;
 			} else if( ! strcmp(argv[i], "-v") ) {
 				if( mode == MEMBER_NAME ) mode = END_ARGUMENT;
 				if( mode != END_ARGUMENT ) return -1;
@@ -352,6 +312,65 @@ int validate_param()
 		OFCOM_DATE_TO_STRING( dstouch_credt, ofcom_sys_date() );
 	}
 
+	return 0;
+}
+
+
+int set_field_buffer(FBUF * fbuf)
+{
+	int retval;
+	
+	/* fbput FB_DSNAME */
+	retval = fbput(fbuf, FB_DSNAME, dstouch_dsname, 0);
+	if (retval == -1)
+	{
+		fprintf(stderr, "dstouch: ***An error occurred while storing DSNAME in field buffer->%s\n", fbstrerror(fberror)); 
+		return -1;
+	}
+	
+	/* fbput FB_MEMNAME */
+	retval = fbput(fbuf, FB_MEMNAME, dstouch_member, 0);
+	if (retval == -1)
+	{
+		fprintf(stderr, "dstouch: ***An error occurred while storing MEMNAME in field buffer->%s\n", fbstrerror(fberror)); 
+		return -1;
+	}
+	
+	/* fbput FB_VOLUME */
+	retval = fbput(fbuf, FB_VOLUME, dstouch_volser, 0);
+	if (retval == -1)
+	{
+		fprintf(stderr, "dstouch: ***An error occurred while storing VOLUME in field buffer->%s\n", fbstrerror(fberror)); 
+		return -1;
+	}
+	
+	/* fbput FB_CATNAME */
+	retval = fbput(fbuf, FB_CATNAME, dstouch_catalog, 0);
+	if (retval == -1)
+	{
+		fprintf(stderr, "dstouch: ***An error occurred while storing CATNAME in field buffer->%s\n", fbstrerror(fberror)); 
+		return -1;
+	}
+	
+	/* fbput FB_TIMESTAMP */
+	retval = fbput(fbuf, FB_TIMESTAMP, dstouch_credt, 0);
+	if (retval == -1)
+	{
+		fprintf(stderr, "dstouch: ***An error occurred while storing TIMESTAMP in field buffer->%s\n", fbstrerror(fberror)); 
+		return -1;
+	}
+	
+	/* fbput FB_TYPE */
+	if (dstouch_use_syssec)
+	{
+		retval = fbput(fbuf, FB_TYPE, "s", 0);
+		if (retval == -1)
+		{
+			fprintf(stderr, "dstouch: ***An error occurred while storing TYPE in field buffer->%s\n", fbstrerror(fberror)); 
+			return -1;
+		}
+	}
+	
 	return 0;
 }
 
