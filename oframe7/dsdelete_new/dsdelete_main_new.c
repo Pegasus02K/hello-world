@@ -39,6 +39,7 @@
 #include "ds.h"
 #include "nvsm.h"
 #include "login.h"
+#include "safx.h"
 
 #define TOOL_NAME		"dsdelete"
 
@@ -55,8 +56,7 @@ char dsdelete_dsnwmem[DS_DSNAME_LEN + NVSM_MEMBER_LEN + 2 +2] = {0,};
 int dsdelete_ignore = 0;
 int dsdelete_uncatalog = 0;
 int dsdelete_cataloged = 0;
-//char tacf_token[SAFX_TOKEN_SIZE + 1];
-char tacf_token[96 + 1] = {0,};
+char tacf_token[SAFX_TOKEN_SIZE + 1];
 
 int error_return(int error_code, char *function_name);
 int check_args(int argc, char *argv[]);
