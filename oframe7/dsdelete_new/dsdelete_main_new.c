@@ -38,8 +38,9 @@
 #include "dscom.h"
 #include "ds.h"
 #include "nvsm.h"
-
 #include "login.h"
+
+#define TOOL_NAME		"dsdelete"
 
 extern char *dsdelete_version;
 extern char *dsdelete_build_info;
@@ -54,6 +55,8 @@ char dsdelete_dsnwmem[DS_DSNAME_LEN + NVSM_MEMBER_LEN + 2 +2] = {0,};
 int dsdelete_ignore = 0;
 int dsdelete_uncatalog = 0;
 int dsdelete_cataloged = 0;
+//char tacf_token[SAFX_TOKEN_SIZE + 1];
+char tacf_token[96 + 1] = {0,};
 
 int error_return(int error_code, char *function_name);
 int check_args(int argc, char *argv[]);
@@ -61,12 +64,7 @@ int print_usage();
 int validate_param();
 int set_field_buffer(FBUF * fbuf);
 int log_a_record(char *title, char *record, int rcode);
-
-
 int tacf_login();
-//char dsdelete_tacf_token[SAFX_TOKEN_SIZE + 1];
-char dsdelete_tacf_token[96 + 1] = {0,};
-
 
 static void _signal_handler(int signo)
 {
@@ -187,7 +185,7 @@ _DSDELETE_MAIN_ERR_RETURN_03:
 
 _DSDELETE_MAIN_ERR_RETURN_02:
 	/* TACF logout */
-	logout_tacf_token(dsdelete_tacf_token, 0);
+	logout_tacf_token(tacf_token, 0);
 
 _DSDELETE_MAIN_ERR_RETURN_01:
 	/* call a function to log a record */
@@ -448,10 +446,10 @@ int tacf_login()
 	strcpy(config.entry_enpasswd, "ENPASSWD" );
 	
 	/* try TACF Login */
-	retval = login_tacf_token(tjesmgr_loginfo, &config, dsdelete_tacf_token, login_flag, tacf_flag);
+	retval = login_tacf_token(tjesmgr_loginfo, &config, tacf_token, login_flag, tacf_flag);
 	if ( retval < 0 ) 
 	{
-		fprintf(stderr, "TACF Login failed. errcode[%d]\n", retval);
+		fprintf(stderr, "%s: *** TACF Login failed->errcode[%d]\n", TOOL_NAME, retval);
 		return -1;
 	}
 	
