@@ -154,38 +154,11 @@ int main(int argc, char *argv[])
 		goto _DSCOPY_MAIN_ERR_RETURN_02;
 	}
 	
-	/* fbput FB_DSNAME */
-	retval = fbput(snd_buf, FB_DSNAME, dscopy_src_dsname, 0);
-	if ( retval == -1 )
-	{
-		fprintf(stderr, "dscopy: ***An error occurred while storing DSNAME in field buffer->%s\n", fbstrerror(fberror)); 
+	/* set field buffer parameters */
+	retval = set_field_buffer(snd_buf);
+	if (retval < 0)
 		goto _DSCOPY_MAIN_ERR_RETURN_03;
-	}
 	
-	/* fbput FB_CATNAME */
-	retval = fbput(snd_buf, FB_CATNAME, dscopy_src_catname, 0);
-	if ( retval == -1 )
-	{
-		fprintf(stderr, "dscopy: ***An error occurred while storing CATNAME in field buffer->%s\n", fbstrerror(fberror)); 
-		goto _DSCOPY_MAIN_ERR_RETURN_03;
-	}
-	
-	/* fbput FB_VOLUME */
-	retval = fbput(snd_buf, FB_VOLUME, dscopy_src_volser, 0);
-	if ( retval == -1 )
-	{
-		fprintf(stderr, "dscopy: ***An error occurred while storing VOLUME in field buffer->%s\n", fbstrerror(fberror)); 
-		goto _DSCOPY_MAIN_ERR_RETURN_03;
-	}
-	
-	/* fbput FB_ARGS */
-	sprintf(dscopy_dst_args, "%s;%s", dscopy_dst_dsname, dscopy_dst_volser);
-	retval = fbput(snd_buf, FB_ARGS, dscopy_dst_args, 0);
-	if ( retval == -1 )
-	{
-		fprintf(stderr, "dscopy: ***An error occurred while storing ARGS in field buffer->%s\n", fbstrerror(fberror)); 
-		goto _DSCOPY_MAIN_ERR_RETURN_03;
-	}
 	
 	/* tmax service call */
 	retval = tpcall("OFRUISVRDSCOPY2", (char *)snd_buf, 0, (char **)&rcv_buf, &rcv_len, TPNOFLAGS);
@@ -349,6 +322,46 @@ int validate_param()
 		}
 	}
 
+	return 0;
+}
+
+int set_field_buffer(FBUF * fbuf)
+{
+	int retval;
+	
+	/* fbput FB_DSNAME */
+	retval = fbput(fbuf, FB_DSNAME, dscopy_src_dsname, 0);
+	if ( retval == -1 )
+	{
+		fprintf(stderr, "dscopy: ***An error occurred while storing DSNAME in field buffer->%s\n", fbstrerror(fberror)); 
+		return -1;
+	}
+	
+	/* fbput FB_CATNAME */
+	retval = fbput(fbuf, FB_CATNAME, dscopy_src_catname, 0);
+	if ( retval == -1 )
+	{
+		fprintf(stderr, "dscopy: ***An error occurred while storing CATNAME in field buffer->%s\n", fbstrerror(fberror)); 
+		return -1;
+	}
+	
+	/* fbput FB_VOLUME */
+	retval = fbput(fbuf, FB_VOLUME, dscopy_src_volser, 0);
+	if ( retval == -1 )
+	{
+		fprintf(stderr, "dscopy: ***An error occurred while storing VOLUME in field buffer->%s\n", fbstrerror(fberror)); 
+		return -1;
+	}
+	
+	/* fbput FB_ARGS */
+	sprintf(dscopy_dst_args, "%s;%s", dscopy_dst_dsname, dscopy_dst_volser);
+	retval = fbput(fbuf, FB_ARGS, dscopy_dst_args, 0);
+	if ( retval == -1 )
+	{
+		fprintf(stderr, "dscopy: ***An error occurred while storing ARGS in field buffer->%s\n", fbstrerror(fberror)); 
+		return -1;
+	}
+	
 	return 0;
 }
 
