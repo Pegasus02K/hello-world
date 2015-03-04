@@ -20,7 +20,7 @@
  *      B: fills in spaces if a record is shorter 
  *      R: removes the source file after saving
  *
- * Return from service:
+ * Return values from service:
  *      FB_RETMSG(string): error message
  */
 
@@ -50,19 +50,16 @@ char dssave_member[NVSM_MEMBER_LEN + 2] = {0,};
 char dssave_catalog[DS_DSNAME_LEN + 2] = {0,};
 char dssave_srcpath[256] = {0,};
 char dssave_deli_form[256] = {0,};
-
-int _fill_spaces = 0;
-int _remove_source = 0;
-int _test_mode = 0;
+int dssave_fill_spaces = 0;
+int dssave_remove_source = 0;
+int dssave_test_mode = 0;
 
 int error_return(int error_code, char *function_name);
-
 int check_args(int argc, char *argv[]);
 int print_usage();
 int validate_param();
-
+int set_field_buffer(FBUF * fbuf);
 int adjust_param();
-
 int log_a_record(char *title, char *record, int rcode);
 
 static void _signal_handler(int signo)
@@ -158,82 +155,10 @@ int main(int argc, char *argv[])
 		goto _DSSAVE_MAIN_ERR_RETURN_02;
 	}
 	
-	/* fbput FB_DSNAME */
-	retval = fbput(snd_buf, FB_DSNAME, dssave_dsname, 0);
-	if (retval == -1)
-	{
-		fprintf(stderr, "dssave: ***An error occurred while storing DSNAME in field buffer->%s\n", fbstrerror(fberror)); 
+	/* set field buffer parameters */
+	retval = set_field_buffer(snd_buf);
+	if (retval < 0)
 		goto _DSSAVE_MAIN_ERR_RETURN_03;
-	}
-	
-	/* fbput FB_MEMNAME */
-	retval = fbput(snd_buf, FB_MEMNAME, dssave_member, 0);
-	if (retval == -1)
-	{
-		fprintf(stderr, "dssave: ***An error occurred while storing MEMNAME in field buffer->%s\n", fbstrerror(fberror)); 
-		goto _DSSAVE_MAIN_ERR_RETURN_03;
-	}
-	
-	/* fbput FB_CATNAME */
-	retval = fbput(snd_buf, FB_CATNAME, dssave_catalog, 0);
-	if (retval == -1)
-	{
-		fprintf(stderr, "dssave: ***An error occurred while storing CATNAME in field buffer->%s\n", fbstrerror(fberror)); 
-		goto _DSSAVE_MAIN_ERR_RETURN_03;
-	}
-	
-	/* fbput FB_FILEPATH */
-	retval = fbput(snd_buf, FB_FILEPATH, dssave_srcpath, 0);
-	if (retval == -1)
-	{
-		fprintf(stderr, "dssave: ***An error occurred while storing FILEPATH in field buffer->%s\n", fbstrerror(fberror)); 
-		goto _DSSAVE_MAIN_ERR_RETURN_03;
-	}
-	
-	/* fbput FB_FILEPATH */
-	retval = fbput(snd_buf, FB_FILEPATH, dssave_srcpath, 0);
-	if (retval == -1)
-	{
-		fprintf(stderr, "dssave: ***An error occurred while storing FILEPATH in field buffer->%s\n", fbstrerror(fberror)); 
-		goto _DSSAVE_MAIN_ERR_RETURN_03;
-	}
-	
-	/* fbput FB_ARGS */
-	retval = fbput(snd_buf, FB_ARGS, dssave_deli_form, 0);
-	if (retval == -1)
-	{
-		fprintf(stderr, "dssave: ***An error occurred while storing FILEPATH in field buffer->%s\n", fbstrerror(fberror)); 
-		goto _DSSAVE_MAIN_ERR_RETURN_03;
-	}
-	
-	/* fbput FB_TYPE */
-	if (_fill_spaces)
-	{
-		retval = fbput(snd_buf, FB_TYPE, "B", 0);
-		if (retval == -1)
-		{
-			fprintf(stderr, "dssave: ***An error occurred while storing TYPE in field buffer->%s\n", fbstrerror(fberror)); 
-			goto _DSSAVE_MAIN_ERR_RETURN_03;
-		}
-	}
-	if (_remove_source)
-	{
-		retval = fbput(snd_buf, FB_TYPE, "R", 0);
-		if (retval == -1)
-		{
-			fprintf(stderr, "dssave: ***An error occurred while storing TYPE in field buffer->%s\n", fbstrerror(fberror)); 
-			goto _DSSAVE_MAIN_ERR_RETURN_03;
-		}
-	}
-	if (_test_mode)
-	{
-		retval = fbput(snd_buf, FB_TYPE, "T", 0);
-		if (retval == -1)
-		{
-			fprintf(stderr, "dssave: ***An error occurred while storing TYPE in field buffer->%s\n", fbstrerror(fberror)); 
-			goto _DSSAVE_MAIN_ERR_RETURN_03;
-		}
-	}
 	
 	/* tmax service call */
 	retval = tpcall("OFRUISVRDSSAVE", (char *)snd_buf, 0, (char **)&rcv_buf, &rcv_len, TPNOFLAGS);
@@ -250,7 +175,7 @@ int main(int argc, char *argv[])
 	retval = 0;
 
 	/* check to remove source */
-	if (_remove_source && ! _test_mode) {
+	if (dssave_remove_source && ! dssave_test_mode) {
 		printf("Removing source file - %s\n", dssave_srcpath);
 		unlink(dssave_srcpath);
 	}
@@ -271,6 +196,13 @@ _DSSAVE_MAIN_ERR_RETURN_01:
 _DSSAVE_MAIN_ERR_RETURN_00:
 	/* process returns here */
 	return retval;
+}
+
+
+int error_return(int error_code, char *function_name)
+{
+	fprintf(stderr, "dsmove: *** %s failed - errcode=%d\n", function_name, error_code);
+	return error_code;
 }
 
 
@@ -314,11 +246,11 @@ int check_args(int argc, char *argv[])
 			}
 			i++;
 		} else if (!strcmp(argv[i],"-B") || !strcmp(argv[i],"--blank")) {
-			_fill_spaces = 1;
+			dssave_fill_spaces = 1;
 		} else if (!strcmp(argv[i],"-R") || !strcmp(argv[i],"--remove")) {
-			_remove_source = 1;
+			dssave_remove_source = 1;
 		} else if (!strcmp(argv[i],"-T") || !strcmp(argv[i],"--test")) {
-			_test_mode = 1;
+			dssave_test_mode = 1;
 		}
 		i++;
 	}
@@ -418,10 +350,80 @@ int validate_param()
 }
 
 
-int error_return(int error_code, char *function_name)
+int set_field_buffer(FBUF * fbuf)
 {
-	fprintf(stderr, "dsmove: *** %s failed - errcode=%d\n", function_name, error_code);
-	return error_code;
+	int retval;
+	
+	/* fbput FB_DSNAME */
+	retval = fbput(fbuf, FB_DSNAME, dssave_dsname, 0);
+	if (retval == -1)
+	{
+		fprintf(stderr, "dssave: ***An error occurred while storing DSNAME in field buffer->%s\n", fbstrerror(fberror)); 
+		return -1;
+	}
+	
+	/* fbput FB_MEMNAME */
+	retval = fbput(fbuf, FB_MEMNAME, dssave_member, 0);
+	if (retval == -1)
+	{
+		fprintf(stderr, "dssave: ***An error occurred while storing MEMNAME in field buffer->%s\n", fbstrerror(fberror)); 
+		return -1;
+	}
+	
+	/* fbput FB_CATNAME */
+	retval = fbput(fbuf, FB_CATNAME, dssave_catalog, 0);
+	if (retval == -1)
+	{
+		fprintf(stderr, "dssave: ***An error occurred while storing CATNAME in field buffer->%s\n", fbstrerror(fberror)); 
+		return -1;
+	}
+	
+	/* fbput FB_FILEPATH */
+	retval = fbput(fbuf, FB_FILEPATH, dssave_srcpath, 0);
+	if (retval == -1)
+	{
+		fprintf(stderr, "dssave: ***An error occurred while storing FILEPATH in field buffer->%s\n", fbstrerror(fberror)); 
+		return -1;
+	}
+	
+	/* fbput FB_ARGS */
+	retval = fbput(fbuf, FB_ARGS, dssave_deli_form, 0);
+	if (retval == -1)
+	{
+		fprintf(stderr, "dssave: ***An error occurred while storing FILEPATH in field buffer->%s\n", fbstrerror(fberror)); 
+		return -1;
+	}
+	
+	/* fbput FB_TYPE */
+	if (dssave_fill_spaces)
+	{
+		retval = fbput(fbuf, FB_TYPE, "B", 0);
+		if (retval == -1)
+		{
+			fprintf(stderr, "dssave: ***An error occurred while storing TYPE in field buffer->%s\n", fbstrerror(fberror)); 
+			return -1;
+		}
+	}
+	if (dssave_remove_source)
+	{
+		retval = fbput(fbuf, FB_TYPE, "R", 0);
+		if (retval == -1)
+		{
+			fprintf(stderr, "dssave: ***An error occurred while storing TYPE in field buffer->%s\n", fbstrerror(fberror)); 
+			return -1;
+		}
+	}
+	if (dssave_test_mode)
+	{
+		retval = fbput(fbuf, FB_TYPE, "T", 0);
+		if (retval == -1)
+		{
+			fprintf(stderr, "dssave: ***An error occurred while storing TYPE in field buffer->%s\n", fbstrerror(fberror)); 
+			return -1;
+		}
+	}
+	
+	return 0;
 }
 
 
