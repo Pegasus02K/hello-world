@@ -39,6 +39,8 @@
 #include "ds.h"
 #include "nvsm.h"
 
+#include "login.h"
+
 extern char *dsdelete_version;
 extern char *dsdelete_build_info;
 
@@ -60,8 +62,11 @@ int validate_param();
 int set_field_buffer(FBUF * fbuf);
 int log_a_record(char *title, char *record, int rcode);
 
-#define DSDELETE_RC_SUCCESS	 0
-#define DSDELETE_RC_WARNING	 4
+
+int tacf_login();
+//char tjesmgr_tacf_token[SAFX_TOKEN_SIZE + 1];
+char tjesmgr_tacf_token[96 + 1] = {0,};
+
 
 static void _signal_handler(int signo)
 {
@@ -125,6 +130,10 @@ int main(int argc, char *argv[])
 	retval = dscom_tool_login("DSDELETE");
 	if( retval < 0 ) goto _DSDELETE_MAIN_ERR_RETURN_01;
 
+//TACF login
+	retval = tacf_login();
+	if (retval < 0) goto _DSDELETE_MAIN_ERR_RETURN_02;
+	
 	/* catch signals */
 	if ( signal(SIGINT, _signal_handler) == SIG_ERR )
 	{
@@ -413,5 +422,34 @@ int log_a_record(char *title, char *record, int rcode)
 	retval = ofcom_log_a_record2(fpath, systime, title, buffer, rcode);
 	if( retval < 0 ) return error_return(retval, "ofcom_log_a_record2()");
 
+	return 0;
+}
+
+
+int tacf_login()
+{
+	int retval;
+	char *tjesmgr_loginfo;
+	
+	int login_flag = 0;
+	int tacf_flag  = 0;
+	safl_config_t config;
+  
+	/* set tacfmgr config */
+	strcpy(config.file_name		, "tjesmgr.conf");
+	strcpy(config.section		, "DEFAULT_USER");
+	strcpy(config.entry_userid	, "USERNAME");
+	strcpy(config.entry_grpname	, "GROUPNAME");
+	strcpy(config.entry_passwd	, "PASSWORD" );
+	strcpy(config.entry_enpasswd, "ENPASSWD" );
+	
+	/* try TACF Login */
+	retval = login_tacf_token(tjesmgr_loginfo, &config, tjesmgr_tacf_token, login_flag, tacf_flag);
+	if ( rc < 0 ) 
+	{
+		fprintf(stderr, "TACF Login failed. errcode[%d]\n", retval);
+		return -1;
+	}
+	
 	return 0;
 }
