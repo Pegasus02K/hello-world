@@ -14,14 +14,12 @@
  *      FB_TYPE(char): delete options (optional)
  *
  * Format(FB_TYPE):
- *      F: delete catalog entry even if the dataset does not exist (force)
+ *      I: ignore parameter validation check
  *      U: delete only the catalog entry for the dataset (uncatalog)
  *
  * From service
  *      FB_RETMSG(string): error message
  *
- * NOTE:
- * use of -I(ignore) option should be reconsidered
  */
 
 #include <stdio.h>
@@ -121,26 +119,7 @@ int main(int argc, char *argv[])
 	
 	/* compose trace log record */
 	sprintf(record, "DSNAME=%s,CATALOG=%s,VOLSER=%s,MEMBER=%s", dsdelete_dsname, dsdelete_catalog, dsdelete_volser, dsdelete_member);
-/*	sprintf(record, "DSNAME=%s", dsdelete_dsname);
 	
-	if( dsdelete_catalog[0]!='\0' )
-	{
-		sprintf(temprec, ",CATALOG=%s",dsdelete_catalog);
-		strcat(record, temprec);
-	}
-	
-	if( dsdelete_volser[0] != '\0' )
-	{
-		sprintf(temprec, ",VOLSER=%s",dsdelete_volser);
-		strcat(record, temprec);
-	}
-	
-	if( dsdelete_member[0] != '\0' )
-	{
-		sprintf(temprec, ",MEMBER=%s",dsdelete_member);
-		strcat(record, temprec);
-	}
-*/
 	/* print a log message */
 	printf("DSDELETE %s\n", record); fflush(stdout);
 	retval = 0;
@@ -216,18 +195,26 @@ int main(int argc, char *argv[])
 		goto _DSDELETE_MAIN_ERR_RETURN_03;
 	}
 
-	/* fbput FB_TYPE: only 'u' is used here. should NULL be stored otherwise? */
+	/* fbput FB_TYPE */
 	if ( dsdelete_uncatalog )
 	{
-//		printf("Uncatalog option enabled \n");
 		retval = fbput(snd_buf, FB_TYPE, "u", 0);
+		if (retval == -1)
+		{
+			fprintf(stderr, "dsdelete: ***An error occurred while storing TYPE(uncatalog option) in field buffer->%s\n", fbstrerror(fberror)); 
+			goto _DSDELETE_MAIN_ERR_RETURN_03;
+		}
 	}
-	if (retval == -1)
+	if ( dsdelete_ignore )
 	{
-		fprintf(stderr, "dsdelete: ***An error occurred while storing TYPE(uncatalog option) in field buffer->%s\n", fbstrerror(fberror)); 
-		goto _DSDELETE_MAIN_ERR_RETURN_03;
+		retval = fbput(snd_buf, FB_TYPE, "I", 0);
+		if (retval == -1)
+		{
+			fprintf(stderr, "dsdelete: ***An error occurred while storing TYPE(ignore option) in field buffer->%s\n", fbstrerror(fberror)); 
+			goto _DSDELETE_MAIN_ERR_RETURN_03;
+		}
 	}
-
+	
 	/* tmax service call */
 	retval = tpcall("OFRUISVRDSDEL", (char *)snd_buf, 0, (char **)&rcv_buf, &rcv_len, TPNOFLAGS);
 	if (retval < 0) 
