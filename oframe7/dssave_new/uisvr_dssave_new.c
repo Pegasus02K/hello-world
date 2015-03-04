@@ -47,29 +47,24 @@
 
 #define SERVICE_NAME    "OFRUISVRDSSAVE"
 
-static char des_dataset[DS_DSNAME_LEN + 2];
-static char des_member[DS_MEMBER_LEN2 + 2];
-static char user_catalog[DS_DSNAME_LEN + 2];
-static char src_filepath[256];
-static char deli_form[256], delimiter[256];
-
-static int _fill_spaces;
-static int _remove_source;
-static int _test_mode;
+static char dssave_dataset[DS_DSNAME_LEN + 2];
+static char dssave_member[DS_MEMBER_LEN2 + 2];
+static char dssave_catalog[DS_DSNAME_LEN + 2];
+static char dssave_srcpath[256];
+static char dssave_deli_form[256], delimiter[256];
+static int dssave_fill_spaces;
+static int dssave_remove_source;
+static int dssave_test_mode;
 
 static int _get_params(FBUF *rcv_buf);
 static int _validate_param(char *ret_msg);
-
 static int _adjust_param();
 static int _convert_delim();
-
 static int _init_libraries();
 static int _final_libraries();
-
 static int _check_src_exist(char *ret_msg);
 static int _check_des_exist(char *ret_msg);
 static int _dssave_dataset(char *ret_msg);
-
 static int _check_input_file(char *filepath, char *recfm, int maxlen, char *delim, char *ret_msg);
 static int _dssave_dataset_inner(int fdin, int fdout, int dcb_type, char* dsorg, int maxlen, char *delim);
 
@@ -100,15 +95,16 @@ void OFRUISVRDSSAVE(TPSVCINFO *tpsvcinfo)
     }
    
     /* initialize parameter */
-    memset(des_dataset,0x00,sizeof(des_dataset));
-    memset(des_member,0x00,sizeof(des_member));
-    memset(user_catalog,0x00,sizeof(user_catalog));
-    memset(src_filepath,0x00,sizeof(src_filepath));
-    memset(deli_form,0x00,sizeof(deli_form));
-    
-    _fill_spaces = 0;
-    _remove_source = 0;
-    _test_mode = 0;
+    memset(dssave_dataset,0x00,sizeof(dssave_dataset));
+    memset(dssave_member,0x00,sizeof(dssave_member));
+    memset(dssave_catalog,0x00,sizeof(dssave_catalog));
+    memset(dssave_srcpath,0x00,sizeof(dssave_srcpath));
+    memset(dssave_deli_form,0x00,sizeof(dssave_deli_form));
+
+    /* initialize parameter2 */    
+    dssave_fill_spaces = 0;
+    dssave_remove_source = 0;
+    dssave_test_mode = 0;
    
     /* get parameters */
     retval = _get_params(rcv_buf);
@@ -134,11 +130,11 @@ void OFRUISVRDSSAVE(TPSVCINFO *tpsvcinfo)
     }
 
     /* print save parameters */
-    OFCOM_MSG_PRINTF2(UISVR_MSG_SOURCE_FILE, SERVICE_NAME, src_filepath);
-    OFCOM_MSG_PRINTF2(UISVR_MSG_DEST_DATASET, SERVICE_NAME, des_dataset);
-    OFCOM_MSG_PRINTF2(UISVR_MSG_DEST_MEMBER, SERVICE_NAME, des_member);
-    OFCOM_MSG_PRINTF2(UISVR_MSG_USER_CATALOG, SERVICE_NAME, user_catalog);
-    OFCOM_MSG_PRINTF2(UISVR_MSG_DELIMITER, SERVICE_NAME, deli_form);
+    OFCOM_MSG_PRINTF2(UISVR_MSG_SOURCE_FILE, SERVICE_NAME, dssave_srcpath);
+    OFCOM_MSG_PRINTF2(UISVR_MSG_DEST_DATASET, SERVICE_NAME, dssave_dataset);
+    OFCOM_MSG_PRINTF2(UISVR_MSG_DEST_MEMBER, SERVICE_NAME, dssave_member);
+    OFCOM_MSG_PRINTF2(UISVR_MSG_USER_CATALOG, SERVICE_NAME, dssave_catalog);
+    OFCOM_MSG_PRINTF2(UISVR_MSG_DELIMITER, SERVICE_NAME, dssave_deli_form);
 
     /* convert delimiter */
     retval = _convert_delim();
@@ -188,12 +184,12 @@ void OFRUISVRDSSAVE(TPSVCINFO *tpsvcinfo)
     }
 
     /* print message */
-    OFCOM_MSG_PRINTF2(UISVR_MSG_DS_SAVE_OK, SERVICE_NAME, des_dataset);
+    OFCOM_MSG_PRINTF2(UISVR_MSG_DS_SAVE_OK, SERVICE_NAME, dssave_dataset);
 
     /* check to remove source */
-    if (_remove_source && ! _test_mode) {
-        OFCOM_MSG_PRINTF2(UISVR_MSG_REMOVING_SOURCE, SERVICE_NAME, src_filepath);
-        unlink(src_filepath);
+    if (dssave_remove_source && ! dssave_test_mode) {
+        OFCOM_MSG_PRINTF2(UISVR_MSG_REMOVING_SOURCE, SERVICE_NAME, dssave_srcpath);
+        unlink(dssave_srcpath);
     }
 
     /* finalize libraries */
@@ -229,7 +225,7 @@ static int _get_params(FBUF *rcv_buf)
     char save_type;
 
     /* fbget dataset name */
-    retval = svrcom_fbget(rcv_buf, FB_DSNAME, des_dataset, DS_DSNAME_LEN); 
+    retval = svrcom_fbget(rcv_buf, FB_DSNAME, dssave_dataset, DS_DSNAME_LEN); 
     if (retval < 0) {
         OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_SVRCOM_FUNCTION_ERROR, SERVICE_NAME, "svrcom_fbget", retval);
         return retval;
@@ -237,32 +233,32 @@ static int _get_params(FBUF *rcv_buf)
 
     /* fbget member name */
     if( dscom_is_relaxed_member_limit() )
-        retval = svrcom_fbget(rcv_buf, FB_MEMNAME, des_member, DS_MEMBER_LEN2);
+        retval = svrcom_fbget(rcv_buf, FB_MEMNAME, dssave_member, DS_MEMBER_LEN2);
     else
-        retval = svrcom_fbget(rcv_buf, FB_MEMNAME, des_member, DS_MEMBER_LEN);
+        retval = svrcom_fbget(rcv_buf, FB_MEMNAME, dssave_member, DS_MEMBER_LEN);
     if (retval < 0) {
         OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_SVRCOM_FUNCTION_ERROR, SERVICE_NAME, "svrcom_fbget", retval);
         return retval;
     }
 
     /* fbget user catalog */
-    retval = svrcom_fbget_opt(rcv_buf, FB_CATNAME, user_catalog, DS_DSNAME_LEN); 
+    retval = svrcom_fbget_opt(rcv_buf, FB_CATNAME, dssave_catalog, DS_DSNAME_LEN); 
     if (retval < 0 && retval != SVRCOM_ERR_FBNOENT) {
         OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_SVRCOM_FUNCTION_ERROR, SERVICE_NAME, "svrcom_fbget", retval);
         return retval;
     } else if (retval == SVRCOM_ERR_FBNOENT) {
-        user_catalog[0] = '\0';
+        dssave_catalog[0] = '\0';
     }
 
     /* fbget dataset filepath */
-    retval = svrcom_fbget(rcv_buf, FB_FILEPATH, src_filepath, sizeof(src_filepath) - 1); 
+    retval = svrcom_fbget(rcv_buf, FB_FILEPATH, dssave_srcpath, sizeof(dssave_srcpath) - 1); 
     if (retval < 0) {
         OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_TMAX_FBGET_ERROR, SERVICE_NAME, "FB_FILEPATH", fbstrerror(fberror));
         return retval;
     }
     
-    /* fbget deli_form from FB_ARGS */
-    retval = svrcom_fbget_opt(rcv_buf, FB_ARGS, deli_form, sizeof(deli_form) - 1);
+    /* fbget dssave_deli_form from FB_ARGS */
+    retval = svrcom_fbget_opt(rcv_buf, FB_ARGS, dssave_deli_form, sizeof(dssave_deli_form) - 1);
     if (retval < 0 && retval != SVRCOM_ERR_FBNOENT) {
         OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_SVRCOM_FUNCTION_ERROR, SERVICE_NAME, "svrcom_fbget_opt", retval);
         return retval;
@@ -282,13 +278,13 @@ static int _get_params(FBUF *rcv_buf)
             break;
         }
         if (save_type == 'L' || save_type == 'l')
-            strcpy(deli_form, "\\n");
+            strcpy(dssave_deli_form, "\\n");
         else if (save_type == 'B' || save_type == 'b')
-            _fill_spaces = 1;
+            dssave_fill_spaces = 1;
         else if (save_type == 'R' || save_type == 'r')
-            _remove_source = 1;
+            dssave_remove_source = 1;
         else if (save_type == 'T' || save_type == 't')
-            _test_mode = 1;
+            dssave_test_mode = 1;
     }
 
     return 0;
@@ -299,36 +295,36 @@ static int _validate_param(char *ret_msg)
     int retval;
 
     /* check if dataset name is specified */
-    if (des_dataset[0] != '\0') {
+    if (dssave_dataset[0] != '\0') {
         /* check if dataset name is invalid */
-        retval = dscom_check_dsname(des_dataset);
+        retval = dscom_check_dsname(dssave_dataset);
         if (retval < 0) {
-            OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_INVALID_DSN_ERROR, SERVICE_NAME, des_dataset);
-            sprintf(ret_msg, "%s: invalid dataset name. dsname=%s\n", SERVICE_NAME, des_dataset);
+            OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_INVALID_DSN_ERROR, SERVICE_NAME, dssave_dataset);
+            sprintf(ret_msg, "%s: invalid dataset name. dsname=%s\n", SERVICE_NAME, dssave_dataset);
     
             return retval;
         }
     }
 
     /* check if member name is specified */
-    if (des_member[0] != '\0') {
+    if (dssave_member[0] != '\0') {
         /* check if member name is invalid */
-        retval = dscom_check_dsname2(des_dataset, des_member);
+        retval = dscom_check_dsname2(dssave_dataset, dssave_member);
         if (retval < 0) {
-            OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_INVALID_MEMBER_ERROR, SERVICE_NAME, des_member);
-            sprintf(ret_msg, "%s: invalid member name. member=%s\n", SERVICE_NAME, des_member);
+            OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_INVALID_MEMBER_ERROR, SERVICE_NAME, dssave_member);
+            sprintf(ret_msg, "%s: invalid member name. member=%s\n", SERVICE_NAME, dssave_member);
 
             return retval;
         }
     }
 
     /* check if user catalog is specified */
-    if (user_catalog[0] != '\0') {
+    if (dssave_catalog[0] != '\0') {
         /* check if catalog name is invalid */
-        retval = dscom_check_dsname(user_catalog);
+        retval = dscom_check_dsname(dssave_catalog);
         if (retval < 0) {
-            OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_INVALID_CATNAME_ERROR, SERVICE_NAME, user_catalog);
-            sprintf(ret_msg, "%s: invalid catalog name. catalog=%s\n", SERVICE_NAME, user_catalog);
+            OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_INVALID_CATNAME_ERROR, SERVICE_NAME, dssave_catalog);
+            sprintf(ret_msg, "%s: invalid catalog name. catalog=%s\n", SERVICE_NAME, dssave_catalog);
 
             return retval;
         }
@@ -343,31 +339,31 @@ static int _adjust_param()
     char s_temp[1024];
 
     /* use temp directory if filepath is not specified */
-    if (src_filepath[0] == 0x00) {
+    if (dssave_srcpath[0] == 0x00) {
         retval = ofcom_conf_get_value("dstool.conf", "DSLOAD", "LOAD_DIR", s_temp, sizeof(s_temp));
         if (retval < 0) {
             OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_OFCOM_FUNCTION_ERROR, SERVICE_NAME, "ofcom_conf_get_value", retval);
             return retval;
         }
 
-        strcpy(src_filepath, s_temp);
-        strcat(src_filepath, "/");
-        strcat(src_filepath, des_dataset);
+        strcpy(dssave_srcpath, s_temp);
+        strcat(dssave_srcpath, "/");
+        strcat(dssave_srcpath, dssave_dataset);
 
-        if (des_member[0] != 0x00) {
-            strcat(src_filepath, ".");
-            strcat(src_filepath, des_member);
+        if (dssave_member[0] != 0x00) {
+            strcat(dssave_srcpath, ".");
+            strcat(dssave_srcpath, dssave_member);
         }
     }
 
     /* use config setting if delimiter is not specified */
-    if (deli_form[0] == 0x00) {
+    if (dssave_deli_form[0] == 0x00) {
         retval = ofcom_conf_get_value("dstool.conf", "DSLOAD", "DELIMITER", s_temp, sizeof(s_temp));
         if (retval < 0) {
-            strcpy(deli_form, "");
+            strcpy(dssave_deli_form, "");
         } else {
-            if (!strcmp(s_temp, "NEWLINE")) strcpy(deli_form, "\\n");
-            else strcpy(deli_form, s_temp);
+            if (!strcmp(s_temp, "NEWLINE")) strcpy(dssave_deli_form, "\\n");
+            else strcpy(dssave_deli_form, s_temp);
         }
     }
 
@@ -385,11 +381,11 @@ static int _convert_delim()
     ptr = delimiter;
 
     /* convert delimiter */
-    if (deli_form[0]) {
-        length = strlen(deli_form);
+    if (dssave_deli_form[0]) {
+        length = strlen(dssave_deli_form);
         for( i = 0; i < length; i++ ) {
-            if( deli_form[i] == '\\' && i+1 < length ) {
-                i++; ch = deli_form[i];
+            if( dssave_deli_form[i] == '\\' && i+1 < length ) {
+                i++; ch = dssave_deli_form[i];
                 switch( ch ) {
                     case 'a': *ptr++ = '\a'; break; /* alert character */
                     case 'b': *ptr++ = '\b'; break; /* backspace */
@@ -400,7 +396,7 @@ static int _convert_delim()
                     case 'v': *ptr++ = '\v'; break; /* vertical tab */
                     default : *ptr++ =  ch ; break; /* default case */
                 }
-            } else *ptr++ = deli_form[i];
+            } else *ptr++ = dssave_deli_form[i];
         }
     }
 
@@ -466,10 +462,10 @@ static int _check_src_exist(char *ret_msg)
     int fd;
 
     /* check to see if file exist */
-    fd = open(src_filepath, O_RDONLY);
+    fd = open(dssave_srcpath, O_RDONLY);
     if (fd < 0) {
-        OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_FILE_NOT_FOUND_ERROR, SERVICE_NAME, src_filepath);
-        sprintf(ret_msg, "%s: file %s is not found.\n", SERVICE_NAME, src_filepath);
+        OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_FILE_NOT_FOUND_ERROR, SERVICE_NAME, dssave_srcpath);
+        sprintf(ret_msg, "%s: file %s is not found.\n", SERVICE_NAME, dssave_srcpath);
         return SVRCOM_ERR_INVALID_PARAM;
     }
     close(fd);
@@ -485,7 +481,7 @@ static int _check_des_exist(char *ret_msg)
     char *cutpos; 
 
     /* call a function to set search catalog */
-    retval = ams_use_catalog(user_catalog);
+    retval = ams_use_catalog(dssave_catalog);
     if (retval < 0) {
         OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_AMS_FUNCTION_ERROR, SERVICE_NAME, "ams_use_catalog", retval); 
         sprintf(ret_msg, "%s: %s() failed. rc(%d)\n", SERVICE_NAME, "ams_use_catalog", retval);
@@ -493,24 +489,24 @@ static int _check_des_exist(char *ret_msg)
     }
 
     /* set search options for ams_search_entries() */
-    if (user_catalog[0]) search_flags = AMS_SEARCH_1_CATALOG;
+    if (dssave_catalog[0]) search_flags = AMS_SEARCH_1_CATALOG;
     else search_flags = AMS_SEARCH_DEFAULT;
 
     /* check if wild card is used */
-    if (strchr(des_dataset, '*') || strchr(des_dataset, '%')) {
-        OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_NO_WILD_CARD_ALLOWD_ERROR, SERVICE_NAME, des_dataset);
-        sprintf(ret_msg, "%s: wild card character is not allowed in dsname - dsname=%s\n", SERVICE_NAME, des_dataset)    ;
+    if (strchr(dssave_dataset, '*') || strchr(dssave_dataset, '%')) {
+        OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_NO_WILD_CARD_ALLOWD_ERROR, SERVICE_NAME, dssave_dataset);
+        sprintf(ret_msg, "%s: wild card character is not allowed in dsname - dsname=%s\n", SERVICE_NAME, dssave_dataset)    ;
         return -1;
     }
     
     /* separate member name from dsname */
-    if ((cutpos = strchr(des_dataset, '('))) {
-        *cutpos = '\0'; strcpy(des_member, cutpos+1);
-        if ((cutpos = strchr(des_member, ')'))) *cutpos = '\0';
+    if ((cutpos = strchr(dssave_dataset, '('))) {
+        *cutpos = '\0'; strcpy(dssave_member, cutpos+1);
+        if ((cutpos = strchr(dssave_member, ')'))) *cutpos = '\0';
     }
 
     /* search source dataset in the catalog */
-    retval = ams_search_entries(des_dataset, "AH", &rcount, result, search_flags);
+    retval = ams_search_entries(dssave_dataset, "AH", &rcount, result, search_flags);
     if (retval < 0 && retval != AMS_ERR_NOT_FOUND) {
         OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_AMS_FUNCTION_ERROR, SERVICE_NAME, "ams_search_entries", retval);
         sprintf(ret_msg, "%s: %s() failed. rc(%d)\n", SERVICE_NAME, "ams_search_entries", retval);
@@ -520,9 +516,9 @@ static int _check_des_exist(char *ret_msg)
     /* check if dataset is not found */
     if (retval == AMS_ERR_NOT_FOUND) {
         /* check if catalog name is specified */
-        if (user_catalog[0]) {
-            OFCOM_MSG_FPRINTF4(stderr, UISVR_MSG_NO_DSNAME_IN_CATALOG_ERROR, SERVICE_NAME, SERVICE_NAME, des_dataset, user_catalog);
-            sprintf(ret_msg, "dataset is not found in the catalog - dsname=%s,catalog=%s\n", des_dataset, user_catalog);
+        if (dssave_catalog[0]) {
+            OFCOM_MSG_FPRINTF4(stderr, UISVR_MSG_NO_DSNAME_IN_CATALOG_ERROR, SERVICE_NAME, SERVICE_NAME, dssave_dataset, dssave_catalog);
+            sprintf(ret_msg, "dataset is not found in the catalog - dsname=%s,catalog=%s\n", dssave_dataset, dssave_catalog);
 
             return retval;
         }
@@ -532,19 +528,19 @@ static int _check_des_exist(char *ret_msg)
         /* retrieve information from catalog */
         retval = ams_info(result[0].catname, result[0].entname, result[0].enttype, &nvsm_info, AMS_INFO_DEFAULT);
         if (retval < 0) {
-            OFCOM_MSG_FPRINTF4(stderr, UISVR_MSG_NO_DSNAME_IN_CATALOG_ERROR, SERVICE_NAME, SERVICE_NAME, des_dataset, user_catalog);
-            sprintf(ret_msg, "%s: dataset is not found in the catalog - dsname=%s,catalog=%s\n", SERVICE_NAME, des_dataset, user_catalog);
+            OFCOM_MSG_FPRINTF4(stderr, UISVR_MSG_NO_DSNAME_IN_CATALOG_ERROR, SERVICE_NAME, SERVICE_NAME, dssave_dataset, dssave_catalog);
+            sprintf(ret_msg, "%s: dataset is not found in the catalog - dsname=%s,catalog=%s\n", SERVICE_NAME, dssave_dataset, dssave_catalog);
 
             return retval;
         }
 
         /* check if user catalog is not specified */
-        if (!user_catalog[0]) strcpy(user_catalog, result[0].catname);
+        if (!dssave_catalog[0]) strcpy(dssave_catalog, result[0].catname);
 
         /* check if member name is specified but dataset is not a PDS */
-        if (des_member[0] && strncmp(nvsm_info.dsorg, "PO", 2)) {
-            OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_DATASET_IS_NOT_PDS_ERROR, SERVICE_NAME, des_dataset);
-            fprintf(stderr, "%s: dataset is not a PDS while member name - dsname=%s\n", SERVICE_NAME, des_dataset);
+        if (dssave_member[0] && strncmp(nvsm_info.dsorg, "PO", 2)) {
+            OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_DATASET_IS_NOT_PDS_ERROR, SERVICE_NAME, dssave_dataset);
+            fprintf(stderr, "%s: dataset is not a PDS while member name - dsname=%s\n", SERVICE_NAME, dssave_dataset);
             return -1;
         }
 
@@ -552,7 +548,7 @@ static int _check_des_exist(char *ret_msg)
     /* otherwise dataset is VSAM */
     } else {
         /* check if user catalog is not specified */
-        if (!user_catalog[0]) strcpy(user_catalog, result[0].catname);
+        if (!dssave_catalog[0]) strcpy(dssave_catalog, result[0].catname);
     }
 
     return 0;
@@ -569,7 +565,7 @@ static int _dssave_dataset(char *ret_msg)
     dsalc_req_t req;
 
     /* set user catalog */
-    retval = ams_use_catalog(user_catalog);
+    retval = ams_use_catalog(dssave_catalog);
     if (retval < 0) {
         OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_AMS_FUNCTION_ERROR, SERVICE_NAME, "ams_use_catalog", retval);
         sprintf(ret_msg, "%s: %s() failed. rc=%d\n", SERVICE_NAME, "ams_use_catalog", retval);
@@ -583,10 +579,10 @@ static int _dssave_dataset(char *ret_msg)
     req.disp.abnormal = DISP_TERM_KEEP;
 
     /* dataset name */
-    if (des_member[0]) {
-        sprintf(s_composed, "%s(%s)", des_dataset, des_member);
+    if (dssave_member[0]) {
+        sprintf(s_composed, "%s(%s)", dssave_dataset, dssave_member);
     } else {
-        strcpy(s_composed, des_dataset);
+        strcpy(s_composed, dssave_dataset);
     }
 
     /* set lock wait flag */
@@ -640,10 +636,10 @@ static int _dssave_dataset(char *ret_msg)
     }
 
     /* process spaces in case of FB */
-    if (strncmp(recfm, "FB", 2) != 0) _fill_spaces = 0;
+    if (strncmp(recfm, "FB", 2) != 0) dssave_fill_spaces = 0;
 
     /* check input file */
-    retval = _check_input_file(src_filepath, recfm, (dcb_type == DSIO_DCB_TYPE_BDAM) ? blksize : maxlen, delimiter, ret_msg);
+    retval = _check_input_file(dssave_srcpath, recfm, (dcb_type == DSIO_DCB_TYPE_BDAM) ? blksize : maxlen, delimiter, ret_msg);
     if (retval < 0) {
         OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_INTERNAL_FUNC_ERROR, SERVICE_NAME, "_check_input_file", retval);
     /*  sprintf(ret_msg, "%s: %s() failed. rc(%d)\n", SERVICE_NAME, "_check_input_file", retval); -- composed already */
@@ -651,12 +647,12 @@ static int _dssave_dataset(char *ret_msg)
     }
 
     /* check not test mode */
-    if (!_test_mode) {
+    if (!dssave_test_mode) {
         /* open input file */
-        fdin = open(src_filepath, O_RDONLY);
+        fdin = open(dssave_srcpath, O_RDONLY);
         if (fdin < 0) {
-            OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_FILE_OPEN_ERROR, SERVICE_NAME, src_filepath, strerror(errno));
-            sprintf(ret_msg, "%s: file open error. path=%s,err=%s\n", SERVICE_NAME, src_filepath, strerror(errno));
+            OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_FILE_OPEN_ERROR, SERVICE_NAME, dssave_srcpath, strerror(errno));
+            sprintf(ret_msg, "%s: file open error. path=%s,err=%s\n", SERVICE_NAME, dssave_srcpath, strerror(errno));
             retval = fdin; goto _DSSAVE_DATASET_ERR_RETURN_03;
         }
 
@@ -775,7 +771,7 @@ static int _check_input_file(char *filepath, char *recfm, int maxlen, char *deli
                         sprintf(ret_msg,"%s: input record is longer than the maximum length. record=%d,reclen=%d,maxlen=%d\n", SERVICE_NAME, rec_count, reclen, maxlen);
                         free(buf); close(fd); return -1;
 
-                    } else if( reclen < maxlen && ! _fill_spaces && fixed_length ) {
+                    } else if( reclen < maxlen && ! dssave_fill_spaces && fixed_length ) {
                         OFCOM_MSG_FPRINTF4(stderr, UISVR_MSG_RECORD_LENGTH_ERROR, SERVICE_NAME, rec_count, reclen, maxlen);
                         sprintf(ret_msg,"%s: input record is shorter than the fixed length. record=%d,reclen=%d,maxlen=%d\n", SERVICE_NAME, rec_count, reclen, maxlen);
                         free(buf); close(fd); return -1;
@@ -804,7 +800,7 @@ static int _check_input_file(char *filepath, char *recfm, int maxlen, char *deli
     }
     // delimiter is NULL string
     else {
-        if (fixed_length && !_fill_spaces) {
+        if (fixed_length && !dssave_fill_spaces) {
             retval = fstat(fd, &filestat);
             if (retval < 0) {
                 OFCOM_MSG_FPRINTF4(stderr, UISVR_MSG_STAT_FUNC_ERROR, SERVICE_NAME, filepath, strerror(errno), retval);
@@ -870,7 +866,7 @@ static int _dssave_dataset_inner(int fdin, int fdout, int dcb_type, char* dsorg,
                     memcpy(rec, buf, i - (delim_size - 1));
                     reclen = i - (delim_size - 1);
 
-                    if( reclen < maxlen && _fill_spaces ) {
+                    if( reclen < maxlen && dssave_fill_spaces ) {
                         memset(rec + reclen, ' ', maxlen - reclen);
                         reclen = maxlen;
                     }
@@ -921,7 +917,7 @@ static int _dssave_dataset_inner(int fdin, int fdout, int dcb_type, char* dsorg,
             if( n_read == 0 ) break;
             else reclen = n_read;
 
-            if (reclen < maxlen && _fill_spaces) {
+            if (reclen < maxlen && dssave_fill_spaces) {
                 memset(rec + reclen, ' ', maxlen - reclen);
                 reclen = maxlen;
             }
