@@ -48,31 +48,23 @@
 
 #define SERVICE_NAME    "OFRUISVRDSLOAD"
 
-
-static char s_dsname[DS_DSNAME_LEN + 2];
-static char s_member[DS_MEMBER_LEN2 + 2];
-static char s_catalog[DS_DSNAME_LEN + 2];
-static char s_dstpath[255 + 1];
-static char deli_form[256], delimiter[256];
-
-//added to handle -v option
-static char s_volser[DS_VOLSER_LEN + 2];
-
+static char dsload_dsname[DS_DSNAME_LEN + 2];
+static char dsload_member[DS_MEMBER_LEN2 + 2];
+static char dsload_catalog[DS_DSNAME_LEN + 2];
+static char dsload_dstpath[255 + 1];
+static char dsload_deli_form[256], dsload_delimiter[256];
+static char dsload_volser[DS_VOLSER_LEN + 2]; //added to handle -v option
 static int _file_check = 1;
 
 static int _get_params(FBUF *rcv_buf);
 static int _validate_param(char *ret_msg);
-
 static int _adjust_param();
 static int _convert_delim();
-
 static int _init_libraries();
 static int _final_libraries();
-
 static int _check_src_exist(char *ret_msg);
 static int _check_dst_exist(char *ret_msg);
 static int _dsload_dataset(char *ret_msg);
-
 static int _check_dataset_size(char *dsname, dsio_dcb_t **dcbs, char *ret_msg);
 static int _dsload_dataset_inner(int fdin, int fdout, int maxlen, char *delim);
 
@@ -103,12 +95,12 @@ void OFRUISVRDSLOAD(TPSVCINFO *tpsvcinfo)
     }
 
     /* initialize parameter */
-    memset(s_dsname,0x00,sizeof(s_dsname));
-    memset(s_member,0x00,sizeof(s_member));
-    memset(s_catalog,0x00,sizeof(s_catalog));
-    memset(s_dstpath,0x00,sizeof(s_dstpath));
-    memset(deli_form,0x00,sizeof(deli_form));
-    memset(s_volser,0x00,sizeof(s_volser));
+    memset(dsload_dsname,0x00,sizeof(dsload_dsname));
+    memset(dsload_member,0x00,sizeof(dsload_member));
+    memset(dsload_catalog,0x00,sizeof(dsload_catalog));
+    memset(dsload_dstpath,0x00,sizeof(dsload_dstpath));
+    memset(dsload_deli_form,0x00,sizeof(dsload_deli_form));
+    memset(dsload_volser,0x00,sizeof(dsload_volser));
 
     _file_check = 1;
 
@@ -136,11 +128,11 @@ void OFRUISVRDSLOAD(TPSVCINFO *tpsvcinfo)
     }
 
     /* print load parameters */
-    OFCOM_MSG_PRINTF2(UISVR_MSG_SOURCE_DATASET, SERVICE_NAME, s_dsname);
-    OFCOM_MSG_PRINTF2(UISVR_MSG_SOURCE_MEMBER, SERVICE_NAME, s_member);
-    OFCOM_MSG_PRINTF2(UISVR_MSG_USER_CATALOG, SERVICE_NAME, s_catalog);
-    OFCOM_MSG_PRINTF2(UISVR_MSG_DEST_FILEPATH, SERVICE_NAME, s_dstpath);
-    OFCOM_MSG_PRINTF2(UISVR_MSG_DELIMITER, SERVICE_NAME, deli_form);
+    OFCOM_MSG_PRINTF2(UISVR_MSG_SOURCE_DATASET, SERVICE_NAME, dsload_dsname);
+    OFCOM_MSG_PRINTF2(UISVR_MSG_SOURCE_MEMBER, SERVICE_NAME, dsload_member);
+    OFCOM_MSG_PRINTF2(UISVR_MSG_USER_CATALOG, SERVICE_NAME, dsload_catalog);
+    OFCOM_MSG_PRINTF2(UISVR_MSG_DEST_FILEPATH, SERVICE_NAME, dsload_dstpath);
+    OFCOM_MSG_PRINTF2(UISVR_MSG_DELIMITER, SERVICE_NAME, dsload_deli_form);
 
     /* convert delimiter */
     retval = _convert_delim();
@@ -190,14 +182,14 @@ void OFRUISVRDSLOAD(TPSVCINFO *tpsvcinfo)
     }
 
     /* print message */
-    OFCOM_MSG_PRINTF2(UISVR_MSG_DS_LOAD_OK, SERVICE_NAME, s_dsname);
+    OFCOM_MSG_PRINTF2(UISVR_MSG_DS_LOAD_OK, SERVICE_NAME, dsload_dsname);
 
     /* finalize libraries */
     _final_libraries();
     uisvr_logout_process();
 
     /* fbput ret_msg */
-    sprintf(ret_msg, "%s - Dataset is loaded successfully.\nPath: [%s]\n", SERVICE_NAME, s_dstpath);
+    sprintf(ret_msg, "%s - Dataset is loaded successfully.\nPath: [%s]\n", SERVICE_NAME, dsload_dstpath);
     svrcom_fbput(snd_buf, FB_RETMSG, ret_msg, 0);
 
     /* service end */
@@ -228,7 +220,7 @@ static int _get_params(FBUF *rcv_buf)
     char load_type;
  
     /* fbget dataset name */
-    retval = svrcom_fbget(rcv_buf, FB_DSNAME, s_dsname, DS_DSNAME_LEN);
+    retval = svrcom_fbget(rcv_buf, FB_DSNAME, dsload_dsname, DS_DSNAME_LEN);
     if (retval < 0) {
         OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_SVRCOM_FUNCTION_ERROR, SERVICE_NAME, "svrcom_fbget", retval);
         return retval;
@@ -236,25 +228,25 @@ static int _get_params(FBUF *rcv_buf)
 
     /* fbget member name */
     if( dscom_is_relaxed_member_limit() )
-        retval = svrcom_fbget(rcv_buf, FB_MEMNAME, s_member, DS_MEMBER_LEN2);
+        retval = svrcom_fbget(rcv_buf, FB_MEMNAME, dsload_member, DS_MEMBER_LEN2);
     else
-        retval = svrcom_fbget(rcv_buf, FB_MEMNAME, s_member, DS_MEMBER_LEN);
+        retval = svrcom_fbget(rcv_buf, FB_MEMNAME, dsload_member, DS_MEMBER_LEN);
     if (retval < 0) {
         OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_SVRCOM_FUNCTION_ERROR, SERVICE_NAME, "svrcom_fbget", retval);
         return retval;
     }
 
     /* fbget user catalog */
-    retval = svrcom_fbget_opt(rcv_buf, FB_CATNAME, s_catalog, DS_DSNAME_LEN);
+    retval = svrcom_fbget_opt(rcv_buf, FB_CATNAME, dsload_catalog, DS_DSNAME_LEN);
     if (retval < 0 && retval != SVRCOM_ERR_FBNOENT ) {
         OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_SVRCOM_FUNCTION_ERROR, SERVICE_NAME, "svrcom_fbget", retval);
         return retval;
     } else if (retval == SVRCOM_ERR_FBNOENT) {
-        s_catalog[0] = '\0';
+        dsload_catalog[0] = '\0';
     }
 
     /* fbget dataset filepath */
-    retval = svrcom_fbget(rcv_buf, FB_FILEPATH, s_dstpath, sizeof(s_dstpath) - 1);
+    retval = svrcom_fbget(rcv_buf, FB_FILEPATH, dsload_dstpath, sizeof(dsload_dstpath) - 1);
     if (retval < 0) {
         OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_SVRCOM_FUNCTION_ERROR, SERVICE_NAME, "svrcom_fbget", retval);
         return retval;
@@ -262,14 +254,14 @@ static int _get_params(FBUF *rcv_buf)
     
     
     /* fbget volume */
-    retval = svrcom_fbget_opt(rcv_buf, FB_VOLUME, s_volser, DS_VOLSER_LEN);
+    retval = svrcom_fbget_opt(rcv_buf, FB_VOLUME, dsload_volser, DS_VOLSER_LEN);
     if (retval < 0 && retval != SVRCOM_ERR_FBNOENT) {
         OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_SVRCOM_FUNCTION_ERROR, SERVICE_NAME, "svrcom_fbget_opt", retval);
         return retval;
     }
     
-    /* fbget deli_form from FB_ARGS */
-    retval = svrcom_fbget_opt(rcv_buf, FB_ARGS, deli_form, sizeof(deli_form) - 1);
+    /* fbget dsload_deli_form from FB_ARGS */
+    retval = svrcom_fbget_opt(rcv_buf, FB_ARGS, dsload_deli_form, sizeof(dsload_deli_form) - 1);
     if (retval < 0 && retval != SVRCOM_ERR_FBNOENT) {
         OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_SVRCOM_FUNCTION_ERROR, SERVICE_NAME, "svrcom_fbget_opt", retval);
         return retval;
@@ -279,7 +271,7 @@ static int _get_params(FBUF *rcv_buf)
     while (1)
     {
         retval = svrcom_fbget_opt(rcv_buf, FB_TYPE, &load_type, 1);
-        if (retval<0)
+        if (retval< 0)
         {
             if (retval != SVRCOM_ERR_FBNOENT)
             {
@@ -289,7 +281,7 @@ static int _get_params(FBUF *rcv_buf)
             break;
         }
         if (load_type == 'L' || load_type == 'l')
-            strcpy(deli_form, "\\n");
+            strcpy(dsload_deli_form, "\\n");
         else if (load_type == 'F' || load_type == 'f')
             _file_check = 0;
     }
@@ -302,49 +294,49 @@ static int _validate_param(char *ret_msg)
     int retval;
 
     /* check if dataset name is specified */
-    if (s_dsname[0] != '\0') {
+    if (dsload_dsname[0] != '\0') {
         /* check if dataset name is invalid */
-        retval = dscom_check_dsname(s_dsname);
+        retval = dscom_check_dsname(dsload_dsname);
         if (retval < 0) {
-            OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_INVALID_DSN_ERROR, SERVICE_NAME, s_dsname);
-            sprintf(ret_msg, "%s: invalid dataset name. dsname=%s\n", SERVICE_NAME, s_dsname);
+            OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_INVALID_DSN_ERROR, SERVICE_NAME, dsload_dsname);
+            sprintf(ret_msg, "%s: invalid dataset name. dsname=%s\n", SERVICE_NAME, dsload_dsname);
     
             return retval;
         }
     }
 
     /* check if member name is specified */
-    if (s_member[0] != '\0') {
+    if (dsload_member[0] != '\0') {
         /* check if member name is invalid */
-        retval = dscom_check_dsname2(s_dsname, s_member);
+        retval = dscom_check_dsname2(dsload_dsname, dsload_member);
         if (retval < 0) {
-            OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_INVALID_MEMBER_ERROR, SERVICE_NAME, s_member);
-            sprintf(ret_msg, "%s: invalid member name. member=%s\n", SERVICE_NAME, s_member);
+            OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_INVALID_MEMBER_ERROR, SERVICE_NAME, dsload_member);
+            sprintf(ret_msg, "%s: invalid member name. member=%s\n", SERVICE_NAME, dsload_member);
 
             return retval;
         }
     }
 
     /* check if user catalog is specified */
-    if (s_catalog[0] != '\0') {
+    if (dsload_catalog[0] != '\0') {
         /* check if catalog name is invalid */
-        retval = dscom_check_dsname(s_catalog);
+        retval = dscom_check_dsname(dsload_catalog);
         if (retval < 0) {
-            OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_INVALID_CATNAME_ERROR, SERVICE_NAME, s_catalog);
-            sprintf(ret_msg, "%s: invalid catalog name. catalog=%s\n", SERVICE_NAME, s_catalog);
+            OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_INVALID_CATNAME_ERROR, SERVICE_NAME, dsload_catalog);
+            sprintf(ret_msg, "%s: invalid catalog name. catalog=%s\n", SERVICE_NAME, dsload_catalog);
 
             return retval;
         }
     }
     
     /* check if volume serial is specified */
-    if (s_volser[0] != '\0')
+    if (dsload_volser[0] != '\0')
     {
-        retval = dscom_check_volser(s_volser);
+        retval = dscom_check_volser(dsload_volser);
         if (retval < 0)
         {
-            OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_INVALID_VOL_ERROR, SERVICE_NAME, s_volser);
-            sprintf(ret_msg, "%s: invalid volume serial. volser=%s\n", SERVICE_NAME, s_volser);
+            OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_INVALID_VOL_ERROR, SERVICE_NAME, dsload_volser);
+            sprintf(ret_msg, "%s: invalid volume serial. volser=%s\n", SERVICE_NAME, dsload_volser);
             
             return retval;
         }
@@ -360,31 +352,31 @@ static int _adjust_param()
     char s_temp[1024];
 
     /* use temp directory if filepath is not specified */
-    if (s_dstpath[0] == 0x00) {
+    if (dsload_dstpath[0] == 0x00) {
         retval = ofcom_conf_get_value("dstool.conf", "DSLOAD", "LOAD_DIR", s_temp, sizeof(s_temp));
         if (retval < 0) {
             OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_OFCOM_FUNCTION_ERROR, SERVICE_NAME, "ofcom_conf_get_value", retval);
             return retval;
         }
 
-        strcpy(s_dstpath, s_temp);
-        strcat(s_dstpath, "/");
-        strcat(s_dstpath, s_dsname);
+        strcpy(dsload_dstpath, s_temp);
+        strcat(dsload_dstpath, "/");
+        strcat(dsload_dstpath, dsload_dsname);
 
-        if (s_member[0] != 0x00) {
-            strcat(s_dstpath, ".");
-            strcat(s_dstpath, s_member);
+        if (dsload_member[0] != 0x00) {
+            strcat(dsload_dstpath, ".");
+            strcat(dsload_dstpath, dsload_member);
         }
     }
 
     /* use config setting if delimiter is not specified */
-    if (deli_form[0] == 0x00) {
+    if (dsload_deli_form[0] == 0x00) {
         retval = ofcom_conf_get_value("dstool.conf", "DSLOAD", "DELIMITER", s_temp, sizeof(s_temp));
         if (retval < 0) {
-            strcpy(deli_form, "");
+            strcpy(dsload_deli_form, "");
         } else {
-            if (!strcmp(s_temp, "NEWLINE")) strcpy(deli_form, "\\n");
-            else strcpy(deli_form, s_temp);
+            if (!strcmp(s_temp, "NEWLINE")) strcpy(dsload_deli_form, "\\n");
+            else strcpy(dsload_deli_form, s_temp);
         }
     }
 
@@ -398,15 +390,15 @@ static int _convert_delim()
     char ch, *ptr;
 
     /* initialize delimiter */
-    memset(delimiter,0x00,sizeof(delimiter));
-    ptr = delimiter;
+    memset(dsload_delimiter,0x00,sizeof(dsload_delimiter));
+    ptr = dsload_delimiter;
 
     /* convert delimiter */
-    if (deli_form[0]) {
-        length = strlen(deli_form);
+    if (dsload_deli_form[0]) {
+        length = strlen(dsload_deli_form);
         for( i = 0; i < length; i++ ) {
-            if( deli_form[i] == '\\' && i+1 < length ) {
-                i++; ch = deli_form[i];
+            if( dsload_deli_form[i] == '\\' && i+1 < length ) {
+                i++; ch = dsload_deli_form[i];
                 switch( ch ) {
                     case 'a': *ptr++ = '\a'; break; /* alert character */
                     case 'b': *ptr++ = '\b'; break; /* backspace */
@@ -417,7 +409,7 @@ static int _convert_delim()
                     case 'v': *ptr++ = '\v'; break; /* vertical tab */
                     default : *ptr++ =  ch ; break; /* default case */
                 }
-            } else *ptr++ = deli_form[i];
+            } else *ptr++ = dsload_deli_form[i];
         }
     }
 
@@ -488,26 +480,26 @@ static int _check_src_exist(char *ret_msg)
     char *cutpos;
     
     /* check if wild card is used */
-    if (strchr(s_dsname, '*') || strchr(s_dsname, '%'))
+    if (strchr(dsload_dsname, '*') || strchr(dsload_dsname, '%'))
     {
-        OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_NO_WILD_CARD_ALLOWD_ERROR, SERVICE_NAME, s_dsname);
-        sprintf(ret_msg, "%s: wild card character is not allowed in dsname - dsname=%s\n", SERVICE_NAME, s_dsname);
+        OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_NO_WILD_CARD_ALLOWD_ERROR, SERVICE_NAME, dsload_dsname);
+        sprintf(ret_msg, "%s: wild card character is not allowed in dsname - dsname=%s\n", SERVICE_NAME, dsload_dsname);
         return -1;
     }
     
     // dsname-member separation
-    if ((cutpos = strchr(s_dsname, '(')))
+    if ((cutpos = strchr(dsload_dsname, '(')))
     {
         *cutpos = '\0';
-        strcpy(s_member, cutpos+1);
-        if ((cutpos = strchr(s_member, ')')))
+        strcpy(dsload_member, cutpos+1);
+        if ((cutpos = strchr(dsload_member, ')')))
             *cutpos = '\0';
     }
     
-    if (!s_volser[0])
+    if (!dsload_volser[0])
     {
         /* call a function to set search catalog */
-        retval = ams_use_catalog(s_catalog);
+        retval = ams_use_catalog(dsload_catalog);
         if (retval < 0)
         {
             OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_AMS_FUNCTION_ERROR, SERVICE_NAME, "ams_use_catalog", retval);
@@ -516,13 +508,13 @@ static int _check_src_exist(char *ret_msg)
         }
         
         /* set search options for ams_search_entries() */
-        if (s_catalog[0])
+        if (dsload_catalog[0])
             search_flags = AMS_SEARCH_1_CATALOG;
         else
             search_flags = AMS_SEARCH_DEFAULT;
         
         /* search source dataset in the catalog */
-        retval = ams_search_entries(s_dsname, "AH", &rcount, result, search_flags);
+        retval = ams_search_entries(dsload_dsname, "AH", &rcount, result, search_flags);
         if (retval < 0 && retval != AMS_ERR_NOT_FOUND)
         {
             OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_AMS_FUNCTION_ERROR, SERVICE_NAME, "ams_search_entries", retval);
@@ -534,7 +526,7 @@ static int _check_src_exist(char *ret_msg)
         if (retval == AMS_ERR_NOT_FOUND)
         {
             // get default volume
-            retval = volm_get_default_volume(s_volser);
+            retval = volm_get_default_volume(dsload_volser);
             if(retval < 0)
             {
                 OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_VOLM_FUNCTION_ERROR, SERVICE_NAME, "volm_get_default_volume", retval);
@@ -555,23 +547,23 @@ static int _check_src_exist(char *ret_msg)
             }
             
             /* check if user catalog is not specified */
-            if (!s_catalog[0])
-                strcpy(s_catalog, result[0].catname);
+            if (!dsload_catalog[0])
+                strcpy(dsload_catalog, result[0].catname);
             
             /* check if member name is specified but dataset is not a PDS */
-            if (s_member[0] && strncmp(nvsm_info.dsorg, "PO", 2))
+            if (dsload_member[0] && strncmp(nvsm_info.dsorg, "PO", 2))
             {
-                OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_DATASET_IS_NOT_PDS_ERROR, SERVICE_NAME, s_dsname);
-                sprintf(ret_msg, "dataset is not a PDS whlie member name is specified - dsname=%s\n", s_dsname);
+                OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_DATASET_IS_NOT_PDS_ERROR, SERVICE_NAME, dsload_dsname);
+                sprintf(ret_msg, "dataset is not a PDS whlie member name is specified - dsname=%s\n", dsload_dsname);
                 return -1;
             }
             
             // get volume serial information
-            strcpy(s_volser, nvsm_info.volser);
+            strcpy(dsload_volser, nvsm_info.volser);
         }
     }
     /* get volume path from volume serial */
-    retval = volm_get_volume_path(s_volser, filepath);
+    retval = volm_get_volume_path(dsload_volser, filepath);
     if(retval < 0)
     {
         OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_VOLM_FUNCTION_ERROR, SERVICE_NAME, "volm_get_volume_path", retval);
@@ -581,14 +573,14 @@ static int _check_src_exist(char *ret_msg)
         
     /* compose filepath */
     strcat(filepath, "/");
-    strcat(filepath, s_dsname);
+    strcat(filepath, dsload_dsname);
         
     /* check file exist */
     retval = lstat(filepath, & filestat);
     if( retval < 0 )
     {
         /*  OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_AMS_FUNCTION_ERROR, SERVICE_NAME, "dataset_name", retval); */
-        sprintf(ret_msg, "%s: dataset is not found in the volume - dsname=%s,volser=%s\n", SERVICE_NAME, s_dsname, s_volser);
+        sprintf(ret_msg, "%s: dataset is not found in the volume - dsname=%s,volser=%s\n", SERVICE_NAME, dsload_dsname, dsload_volser);
         return -1;
     }
     
@@ -602,10 +594,10 @@ static int _check_dst_exist(char *ret_msg)
 
     /* check to see if file exist */
     if (_file_check) {
-        fd = open(s_dstpath, O_RDONLY);
+        fd = open(dsload_dstpath, O_RDONLY);
         if (fd >= 0) {
-            OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_FILE_EXIST_ERROR, SERVICE_NAME, s_dstpath);
-            sprintf(ret_msg, "%s: file %s already exist.\n", SERVICE_NAME, s_dstpath);
+            OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_FILE_EXIST_ERROR, SERVICE_NAME, dsload_dstpath);
+            sprintf(ret_msg, "%s: file %s already exist.\n", SERVICE_NAME, dsload_dstpath);
             close(fd); return SVRCOM_ERR_INVALID_PARAM;
         }
     }
@@ -623,7 +615,7 @@ static int _dsload_dataset(char *ret_msg)
     dsalc_req_t req;
 
     /* set user catalog */
-    retval = ams_use_catalog(s_catalog);
+    retval = ams_use_catalog(dsload_catalog);
     if (retval < 0) {
         OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_AMS_FUNCTION_ERROR, SERVICE_NAME, "ams_use_catalog", retval);
         sprintf(ret_msg, "%s: %s() failed. rc(%d)\n", SERVICE_NAME, "ams_use_catalog", retval);
@@ -637,14 +629,14 @@ static int _dsload_dataset(char *ret_msg)
     req.disp.abnormal = DISP_TERM_KEEP;
 
     /* dataset name */
-    if (s_member[0]) {
-        sprintf(s_composed, "%s(%s)", s_dsname, s_member);
+    if (dsload_member[0]) {
+        sprintf(s_composed, "%s(%s)", dsload_dsname, dsload_member);
     } else {
-        strcpy(s_composed, s_dsname);
+        strcpy(s_composed, dsload_dsname);
     }
 
-    if (s_volser[0])
-        strcpy(req.volume.vlist,s_volser);
+    if (dsload_volser[0])
+        strcpy(req.volume.vlist,dsload_volser);
 
     /* set lock wait flag */
     req.lock.lock_wait = LOCKM_LOCK_WAIT_IMMEDIATE;
@@ -697,15 +689,15 @@ static int _dsload_dataset(char *ret_msg)
     }
    
     /* open output file */
-    fdout = open(s_dstpath, O_RDWR | O_CREAT | O_TRUNC, 0666);
+    fdout = open(dsload_dstpath, O_RDWR | O_CREAT | O_TRUNC, 0666);
     if (fdout < 0) {
-        OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_FILE_OPEN_ERROR, SERVICE_NAME, s_dstpath, strerror(errno));
-        sprintf(ret_msg, "%s: file open error. path(%s),err(%s)\n", SERVICE_NAME, s_dstpath, strerror(errno));
+        OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_FILE_OPEN_ERROR, SERVICE_NAME, dsload_dstpath, strerror(errno));
+        sprintf(ret_msg, "%s: file open error. path(%s),err(%s)\n", SERVICE_NAME, dsload_dstpath, strerror(errno));
         retval = fdout; goto _DSLOAD_DATASET_ERR_RETURN_04;
     }
 
     /* dsload_dataset_inner */
-    retval = _dsload_dataset_inner(fdin, fdout, maxlen, delimiter);
+    retval = _dsload_dataset_inner(fdin, fdout, maxlen, dsload_delimiter);
     if (retval < 0) {
         OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_INTERNAL_FUNC_ERROR, SERVICE_NAME, "_dsload_dataset_inner", retval);
         sprintf(ret_msg, "%s: %s() failed. rc(%d)\n", SERVICE_NAME, "_dsload_dataset_inner", retval);
@@ -757,7 +749,7 @@ _DSLOAD_DATASET_ERR_RETURN_03:
 
 _DSLOAD_DATASET_ERR_RETURN_00:
     if (fdout >= 0 )
-        unlink(s_dstpath);
+        unlink(dsload_dstpath);
 
     return retval;
 }
