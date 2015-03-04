@@ -156,7 +156,6 @@ int main(int argc, char *argv[])
 	if (retval < 0)
 		goto _DSCOPY_MAIN_ERR_RETURN_03;
 	
-	
 	/* tmax service call */
 	retval = tpcall("OFRUISVRDSCOPY2", (char *)snd_buf, 0, (char **)&rcv_buf, &rcv_len, TPNOFLAGS);
 	if (retval < 0) 
@@ -321,6 +320,7 @@ int validate_param()
 
 	return 0;
 }
+
 
 int set_field_buffer(FBUF * fbuf)
 {
