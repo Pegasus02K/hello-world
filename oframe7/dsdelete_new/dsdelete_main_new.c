@@ -126,13 +126,9 @@ int main(int argc, char *argv[])
 	printf("DSDELETE %s\n", record); fflush(stdout);
 	retval = 0;
 
-	/* tool login process */
-	retval = dscom_tool_login("DSDELETE");
-	if( retval < 0 ) goto _DSDELETE_MAIN_ERR_RETURN_01;
-
-//TACF login
+	/* TACF login process */
 	retval = tacf_login();
-	if (retval < 0) goto _DSDELETE_MAIN_ERR_RETURN_02;
+	if (retval < 0) goto _DSDELETE_MAIN_ERR_RETURN_01;
 	
 	/* catch signals */
 	if ( signal(SIGINT, _signal_handler) == SIG_ERR )
@@ -190,8 +186,8 @@ _DSDELETE_MAIN_ERR_RETURN_03:
 	tpfree((char *)snd_buf);
 
 _DSDELETE_MAIN_ERR_RETURN_02:
-	/* tool logout process */
-	dscom_tool_logout();
+	/* TACF logout */
+	logout_tacf_token(dsdelete_tacf_token, 0);
 
 _DSDELETE_MAIN_ERR_RETURN_01:
 	/* call a function to log a record */
@@ -444,11 +440,11 @@ int tacf_login()
 	safl_config_t config;
   
 	/* set tacfmgr config */
-	strcpy(config.file_name		, "tjesmgr.conf");
-	strcpy(config.section		, "DEFAULT_USER");
-	strcpy(config.entry_userid	, "USERNAME");
-	strcpy(config.entry_grpname	, "GROUPNAME");
-	strcpy(config.entry_passwd	, "PASSWORD" );
+	strcpy(config.file_name, "tjesmgr.conf");
+	strcpy(config.section, "DEFAULT_USER");
+	strcpy(config.entry_userid, "USERNAME");
+	strcpy(config.entry_grpname, "GROUPNAME");
+	strcpy(config.entry_passwd, "PASSWORD" );
 	strcpy(config.entry_enpasswd, "ENPASSWD" );
 	
 	/* try TACF Login */
