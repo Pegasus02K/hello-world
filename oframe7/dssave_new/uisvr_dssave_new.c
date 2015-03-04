@@ -34,7 +34,6 @@
  *      FB_CATNAME(string): catalog name
  *      FB_FILEPATH(string): dataset filepath
  *      FB_TYPE(char): save options (multiple, optional)
- *
  *      FB_ARGS(string): delimiter from tool
  *
  * Format(FB_TYPE):
@@ -82,10 +81,6 @@ void OFRUISVRDSSAVE(TPSVCINFO *tpsvcinfo)
     FBUF   *snd_buf = NULL;
     char    ret_msg[1024] = {'\0',};
 
-	_fill_spaces = 0;
-	_remove_source = 0;
-	_test_mode = 0;
-
     /* service start */
     retval = svrcom_svc_start(SERVICE_NAME);
     if (retval != SVRCOM_ERR_SUCCESS) {
@@ -110,6 +105,10 @@ void OFRUISVRDSSAVE(TPSVCINFO *tpsvcinfo)
     memset(user_catalog,0x00,sizeof(user_catalog));
     memset(src_filepath,0x00,sizeof(src_filepath));
     memset(deli_form,0x00,sizeof(deli_form));
+    
+    _fill_spaces = 0;
+    _remove_source = 0;
+    _test_mode = 0;
    
     /* get parameters */
     retval = _get_params(rcv_buf);
@@ -119,12 +118,12 @@ void OFRUISVRDSSAVE(TPSVCINFO *tpsvcinfo)
         goto _DSSAVE_MAIN_ERR_TPFAIL_01;
     }
 
-	/* validate parameters */
-	retval = _validate_param(ret_msg);
-	if (retval < 0 ) {
-		OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_INTERNAL_FUNC_ERROR, SERVICE_NAME, "_validate_params", retval);
-		goto _DSSAVE_MAIN_ERR_TPFAIL_01;
-	}
+    /* validate parameters */
+    retval = _validate_param(ret_msg);
+    if (retval < 0 ) {
+        OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_INTERNAL_FUNC_ERROR, SERVICE_NAME, "_validate_params", retval);
+        goto _DSSAVE_MAIN_ERR_TPFAIL_01;
+    }
 
     /* adjust parameters */
     retval = _adjust_param();
@@ -173,12 +172,12 @@ void OFRUISVRDSSAVE(TPSVCINFO *tpsvcinfo)
         goto _DSSAVE_MAIN_ERR_TPFAIL_03;
     }
 
-	/* check if destination exist */
-	retval = _check_des_exist(ret_msg);
-	if (retval < 0) {
-		OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_INTERNAL_FUNC_ERROR, SERVICE_NAME, "_check_des_exist", retval);
-		goto _DSSAVE_MAIN_ERR_TPFAIL_03;
-	}
+    /* check if destination exist */
+    retval = _check_des_exist(ret_msg);
+    if (retval < 0) {
+        OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_INTERNAL_FUNC_ERROR, SERVICE_NAME, "_check_des_exist", retval);
+        goto _DSSAVE_MAIN_ERR_TPFAIL_03;
+    }
 
     /* save dataset */
     retval = _dssave_dataset(ret_msg);
@@ -261,31 +260,35 @@ static int _get_params(FBUF *rcv_buf)
         OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_TMAX_FBGET_ERROR, SERVICE_NAME, "FB_FILEPATH", fbstrerror(fberror));
         return retval;
     }
-	
-	/* fbget deli_form from FB_ARGS */
+    
+    /* fbget deli_form from FB_ARGS */
     retval = svrcom_fbget_opt(rcv_buf, FB_ARGS, deli_form, sizeof(deli_form) - 1);
     if (retval < 0 && retval != SVRCOM_ERR_FBNOENT) {
         OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_SVRCOM_FUNCTION_ERROR, SERVICE_NAME, "svrcom_fbget_opt", retval);
         return retval;
     }
-	
-    /* initialize global variales */
-    _fill_spaces = 0;
-    _remove_source = 0;
 
-    /* fbget multiple options */
-    while(1) {
-        if (svrcom_fbget(rcv_buf, FB_TYPE, &save_type, 1) < 0) break;
-
-        if (save_type == 'L' || save_type == 'l') {
-            strcpy(deli_form, "\\n");
-        } else if (save_type == 'B' || save_type == 'b') {
-            _fill_spaces = 1;
-        } else if (save_type == 'R' || save_type == 'r') {
-            _remove_source = 1;
-        } else if (save_type == 'T' || save_type == 't') {
-            _test_mode = 1;
+    /* fbget multiple options from FB_TYPE */
+    while(1)
+    {
+        retval = svrcom_fbget_opt(rcv_buf, FB_TYPE, &save_type, 1);
+        if (retval < 0 )
+        {
+            if (retval != SVRCOM_ERR_FBNOENT)
+            {
+                OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_SVRCOM_FUNCTION_ERROR, SERVICE_NAME, "svrcom_fbget", retval);
+                return retval;
+            }
+            break;
         }
+        if (save_type == 'L' || save_type == 'l')
+            strcpy(deli_form, "\\n");
+        else if (save_type == 'B' || save_type == 'b')
+            _fill_spaces = 1;
+        else if (save_type == 'R' || save_type == 'r')
+            _remove_source = 1;
+        else if (save_type == 'T' || save_type == 't')
+            _test_mode = 1;
     }
 
     return 0;
@@ -293,45 +296,45 @@ static int _get_params(FBUF *rcv_buf)
 
 static int _validate_param(char *ret_msg)
 {
-	int retval;
+    int retval;
 
-	/* check if dataset name is specified */
-	if (des_dataset[0] != '\0') {
-		/* check if dataset name is invalid */
-		retval = dscom_check_dsname(des_dataset);
-		if (retval < 0) {
-			OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_INVALID_DSN_ERROR, SERVICE_NAME, des_dataset);
-			sprintf(ret_msg, "%s: invalid dataset name. dsname=%s\n", SERVICE_NAME, des_dataset);
-	
-			return retval;
-		}
-	}
+    /* check if dataset name is specified */
+    if (des_dataset[0] != '\0') {
+        /* check if dataset name is invalid */
+        retval = dscom_check_dsname(des_dataset);
+        if (retval < 0) {
+            OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_INVALID_DSN_ERROR, SERVICE_NAME, des_dataset);
+            sprintf(ret_msg, "%s: invalid dataset name. dsname=%s\n", SERVICE_NAME, des_dataset);
+    
+            return retval;
+        }
+    }
 
-	/* check if member name is specified */
-	if (des_member[0] != '\0') {
-		/* check if member name is invalid */
-		retval = dscom_check_dsname2(des_dataset, des_member);
-		if (retval < 0) {
-			OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_INVALID_MEMBER_ERROR, SERVICE_NAME, des_member);
-			sprintf(ret_msg, "%s: invalid member name. member=%s\n", SERVICE_NAME, des_member);
+    /* check if member name is specified */
+    if (des_member[0] != '\0') {
+        /* check if member name is invalid */
+        retval = dscom_check_dsname2(des_dataset, des_member);
+        if (retval < 0) {
+            OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_INVALID_MEMBER_ERROR, SERVICE_NAME, des_member);
+            sprintf(ret_msg, "%s: invalid member name. member=%s\n", SERVICE_NAME, des_member);
 
-			return retval;
-		}
-	}
+            return retval;
+        }
+    }
 
-	/* check if user catalog is specified */
-	if (user_catalog[0] != '\0') {
-		/* check if catalog name is invalid */
-		retval = dscom_check_dsname(user_catalog);
-		if (retval < 0) {
-			OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_INVALID_CATNAME_ERROR, SERVICE_NAME, user_catalog);
-			sprintf(ret_msg, "%s: invalid catalog name. catalog=%s\n", SERVICE_NAME, user_catalog);
+    /* check if user catalog is specified */
+    if (user_catalog[0] != '\0') {
+        /* check if catalog name is invalid */
+        retval = dscom_check_dsname(user_catalog);
+        if (retval < 0) {
+            OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_INVALID_CATNAME_ERROR, SERVICE_NAME, user_catalog);
+            sprintf(ret_msg, "%s: invalid catalog name. catalog=%s\n", SERVICE_NAME, user_catalog);
 
-			return retval;
-		}
-	}
+            return retval;
+        }
+    }
 
-	return 0;
+    return 0;
 }
 
 static int _adjust_param()
@@ -479,13 +482,13 @@ static int _check_des_exist(char *ret_msg)
 {
     int retval, rcount = 1; icf_result_t result[1]; int search_flags;
     ams_info_nvsm_t nvsm_info;
-	char *cutpos; 
+    char *cutpos; 
 
     /* call a function to set search catalog */
     retval = ams_use_catalog(user_catalog);
     if (retval < 0) {
-		OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_AMS_FUNCTION_ERROR, SERVICE_NAME, "ams_use_catalog", retval); 
-		sprintf(ret_msg, "%s: %s() failed. rc(%d)\n", SERVICE_NAME, "ams_use_catalog", retval);
+        OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_AMS_FUNCTION_ERROR, SERVICE_NAME, "ams_use_catalog", retval); 
+        sprintf(ret_msg, "%s: %s() failed. rc(%d)\n", SERVICE_NAME, "ams_use_catalog", retval);
         return retval;
     }
 
@@ -495,22 +498,22 @@ static int _check_des_exist(char *ret_msg)
 
     /* check if wild card is used */
     if (strchr(des_dataset, '*') || strchr(des_dataset, '%')) {
-		OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_NO_WILD_CARD_ALLOWD_ERROR, SERVICE_NAME, des_dataset);
-		sprintf(ret_msg, "%s: wild card character is not allowed in dsname - dsname=%s\n", SERVICE_NAME, des_dataset)    ;
+        OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_NO_WILD_CARD_ALLOWD_ERROR, SERVICE_NAME, des_dataset);
+        sprintf(ret_msg, "%s: wild card character is not allowed in dsname - dsname=%s\n", SERVICE_NAME, des_dataset)    ;
         return -1;
     }
-	
-	/* separate member name from dsname */
-	if ((cutpos = strchr(des_dataset, '('))) {
-		*cutpos = '\0'; strcpy(des_member, cutpos+1);
-		if ((cutpos = strchr(des_member, ')'))) *cutpos = '\0';
-	}
+    
+    /* separate member name from dsname */
+    if ((cutpos = strchr(des_dataset, '('))) {
+        *cutpos = '\0'; strcpy(des_member, cutpos+1);
+        if ((cutpos = strchr(des_member, ')'))) *cutpos = '\0';
+    }
 
     /* search source dataset in the catalog */
     retval = ams_search_entries(des_dataset, "AH", &rcount, result, search_flags);
     if (retval < 0 && retval != AMS_ERR_NOT_FOUND) {
-		OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_AMS_FUNCTION_ERROR, SERVICE_NAME, "ams_search_entries", retval);
-		sprintf(ret_msg, "%s: %s() failed. rc(%d)\n", SERVICE_NAME, "ams_search_entries", retval);
+        OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_AMS_FUNCTION_ERROR, SERVICE_NAME, "ams_search_entries", retval);
+        sprintf(ret_msg, "%s: %s() failed. rc(%d)\n", SERVICE_NAME, "ams_search_entries", retval);
         return retval;
     }
 
@@ -518,8 +521,8 @@ static int _check_des_exist(char *ret_msg)
     if (retval == AMS_ERR_NOT_FOUND) {
         /* check if catalog name is specified */
         if (user_catalog[0]) {
-			OFCOM_MSG_FPRINTF4(stderr, UISVR_MSG_NO_DSNAME_IN_CATALOG_ERROR, SERVICE_NAME, SERVICE_NAME, des_dataset, user_catalog);
-			sprintf(ret_msg, "dataset is not found in the catalog - dsname=%s,catalog=%s\n", des_dataset, user_catalog);
+            OFCOM_MSG_FPRINTF4(stderr, UISVR_MSG_NO_DSNAME_IN_CATALOG_ERROR, SERVICE_NAME, SERVICE_NAME, des_dataset, user_catalog);
+            sprintf(ret_msg, "dataset is not found in the catalog - dsname=%s,catalog=%s\n", des_dataset, user_catalog);
 
             return retval;
         }
@@ -529,8 +532,8 @@ static int _check_des_exist(char *ret_msg)
         /* retrieve information from catalog */
         retval = ams_info(result[0].catname, result[0].entname, result[0].enttype, &nvsm_info, AMS_INFO_DEFAULT);
         if (retval < 0) {
-			OFCOM_MSG_FPRINTF4(stderr, UISVR_MSG_NO_DSNAME_IN_CATALOG_ERROR, SERVICE_NAME, SERVICE_NAME, des_dataset, user_catalog);
-			sprintf(ret_msg, "%s: dataset is not found in the catalog - dsname=%s,catalog=%s\n", SERVICE_NAME, des_dataset, user_catalog);
+            OFCOM_MSG_FPRINTF4(stderr, UISVR_MSG_NO_DSNAME_IN_CATALOG_ERROR, SERVICE_NAME, SERVICE_NAME, des_dataset, user_catalog);
+            sprintf(ret_msg, "%s: dataset is not found in the catalog - dsname=%s,catalog=%s\n", SERVICE_NAME, des_dataset, user_catalog);
 
             return retval;
         }
@@ -540,7 +543,7 @@ static int _check_des_exist(char *ret_msg)
 
         /* check if member name is specified but dataset is not a PDS */
         if (des_member[0] && strncmp(nvsm_info.dsorg, "PO", 2)) {
-			OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_DATASET_IS_NOT_PDS_ERROR, SERVICE_NAME, des_dataset);
+            OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_DATASET_IS_NOT_PDS_ERROR, SERVICE_NAME, des_dataset);
             fprintf(stderr, "%s: dataset is not a PDS while member name - dsname=%s\n", SERVICE_NAME, des_dataset);
             return -1;
         }
@@ -620,8 +623,8 @@ static int _dssave_dataset(char *ret_msg)
         goto _DSSAVE_DATASET_ERR_RETURN_03;
     }
 
-	/* get blksize */
-	retval = dsio_dcb_cisize(dsalc_get_dcbs(handle), 0, & blksize, NULL);
+    /* get blksize */
+    retval = dsio_dcb_cisize(dsalc_get_dcbs(handle), 0, & blksize, NULL);
     if (retval < 0) {
         OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_DSIO_FUNCTION_ERROR, SERVICE_NAME, "dsio_dcb_cisize", retval);
         sprintf(ret_msg, "%s: %s() failed. rc(%d)\n", SERVICE_NAME, "dsio_dcb_cisize", retval);
@@ -647,48 +650,48 @@ static int _dssave_dataset(char *ret_msg)
         goto _DSSAVE_DATASET_ERR_RETURN_03;
     }
 
-	/* check not test mode */
-	if (!_test_mode) {
-		/* open input file */
-		fdin = open(src_filepath, O_RDONLY);
-		if (fdin < 0) {
-			OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_FILE_OPEN_ERROR, SERVICE_NAME, src_filepath, strerror(errno));
-			sprintf(ret_msg, "%s: file open error. path=%s,err=%s\n", SERVICE_NAME, src_filepath, strerror(errno));
-			retval = fdin; goto _DSSAVE_DATASET_ERR_RETURN_03;
-		}
+    /* check not test mode */
+    if (!_test_mode) {
+        /* open input file */
+        fdin = open(src_filepath, O_RDONLY);
+        if (fdin < 0) {
+            OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_FILE_OPEN_ERROR, SERVICE_NAME, src_filepath, strerror(errno));
+            sprintf(ret_msg, "%s: file open error. path=%s,err=%s\n", SERVICE_NAME, src_filepath, strerror(errno));
+            retval = fdin; goto _DSSAVE_DATASET_ERR_RETURN_03;
+        }
 
-		/* dsio_batch_open */
-		fdout = dsio_batch_open(dsalc_get_dcbs(handle), DSIO_OPEN_OUTPUT | DSIO_ACCESS_SEQUENTIAL | DSIO_LOCK_EXCLUSIVE);
-		if (fdout < 0) {
-			OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_DSIO_FUNCTION_ERROR, SERVICE_NAME, "dsio_batch_open", retval);
-			sprintf(ret_msg, "%s: %s() failed. rc(%d)\n", SERVICE_NAME, "dsio_batch_open", fdout);
-			retval = fdout; goto _DSSAVE_DATASET_ERR_RETURN_04;
-		}
+        /* dsio_batch_open */
+        fdout = dsio_batch_open(dsalc_get_dcbs(handle), DSIO_OPEN_OUTPUT | DSIO_ACCESS_SEQUENTIAL | DSIO_LOCK_EXCLUSIVE);
+        if (fdout < 0) {
+            OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_DSIO_FUNCTION_ERROR, SERVICE_NAME, "dsio_batch_open", retval);
+            sprintf(ret_msg, "%s: %s() failed. rc(%d)\n", SERVICE_NAME, "dsio_batch_open", fdout);
+            retval = fdout; goto _DSSAVE_DATASET_ERR_RETURN_04;
+        }
 
-		/* dssave_dataset_inner */
-		retval = _dssave_dataset_inner(fdin, fdout, dcb_type, dsorg,  (dcb_type == DSIO_DCB_TYPE_BDAM) ? blksize : maxlen, delimiter);
-		if (retval < 0) {
-			OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_INTERNAL_FUNC_ERROR, SERVICE_NAME, "_dssave_dataset_inner", retval);
-			sprintf(ret_msg, "%s: %s() failed. rc(%d)\n", SERVICE_NAME, "_dssave_dataset_inner", retval);
-			goto _DSSAVE_DATASET_ERR_RETURN_05;
-		}
+        /* dssave_dataset_inner */
+        retval = _dssave_dataset_inner(fdin, fdout, dcb_type, dsorg,  (dcb_type == DSIO_DCB_TYPE_BDAM) ? blksize : maxlen, delimiter);
+        if (retval < 0) {
+            OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_INTERNAL_FUNC_ERROR, SERVICE_NAME, "_dssave_dataset_inner", retval);
+            sprintf(ret_msg, "%s: %s() failed. rc(%d)\n", SERVICE_NAME, "_dssave_dataset_inner", retval);
+            goto _DSSAVE_DATASET_ERR_RETURN_05;
+        }
 
-		/* dsio_batch_close */
-		retval = dsio_batch_close(fdout, DSIO_CLOSE_DEFAULT);
-		if (retval < 0) {
-			OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_DSIO_FUNCTION_ERROR, SERVICE_NAME, "dsio_batch_close", retval);
-			sprintf(ret_msg, "%s: %s() failed. rc(%d)\n", SERVICE_NAME, "dsio_batch_close", retval);
-			goto _DSSAVE_DATASET_ERR_RETURN_04;
-		}
+        /* dsio_batch_close */
+        retval = dsio_batch_close(fdout, DSIO_CLOSE_DEFAULT);
+        if (retval < 0) {
+            OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_DSIO_FUNCTION_ERROR, SERVICE_NAME, "dsio_batch_close", retval);
+            sprintf(ret_msg, "%s: %s() failed. rc(%d)\n", SERVICE_NAME, "dsio_batch_close", retval);
+            goto _DSSAVE_DATASET_ERR_RETURN_04;
+        }
 
-		/* close input file */
-		retval = close(fdin);
-		if (retval < 0) {
-			OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_FILE_CLOSE_ERROR, SERVICE_NAME, fdin, strerror(errno));
-			sprintf(ret_msg, "%s: file close error. fd(%d),err(%s)\n", SERVICE_NAME, fdin, strerror(errno));
-			goto _DSSAVE_DATASET_ERR_RETURN_03;
-		}
-	}
+        /* close input file */
+        retval = close(fdin);
+        if (retval < 0) {
+            OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_FILE_CLOSE_ERROR, SERVICE_NAME, fdin, strerror(errno));
+            sprintf(ret_msg, "%s: file close error. fd(%d),err(%s)\n", SERVICE_NAME, fdin, strerror(errno));
+            goto _DSSAVE_DATASET_ERR_RETURN_03;
+        }
+    }
     /* dsalc_dispose */
     retval = dsalc_dispose(handle, DISP_COND_NORMAL, DSALC_DISPOSE_DEFAULT);
     if (retval < 0) {
@@ -723,11 +726,11 @@ _DSSAVE_DATASET_ERR_RETURN_00:
 
 static int _check_input_file(char *filepath, char *recfm, int maxlen, char *delim, char *ret_msg)
 {
-	int retval;
+    int retval;
     int i, delim_size, fd, n_read, buflen, reclen;
     char *buf = NULL; int fixed_length = 0, rec_count = 0;
 
-	struct stat filestat;
+    struct stat filestat;
 
     delim_size = strlen(delim);
 
@@ -799,24 +802,24 @@ static int _check_input_file(char *filepath, char *recfm, int maxlen, char *deli
 
         free(buf);
     }
-	// delimiter is NULL string
-	else {
-		if (fixed_length && !_fill_spaces) {
-			retval = fstat(fd, &filestat);
-			if (retval < 0) {
-				OFCOM_MSG_FPRINTF4(stderr, UISVR_MSG_STAT_FUNC_ERROR, SERVICE_NAME, filepath, strerror(errno), retval);
-				sprintf(ret_msg,"%s: fstat() function failed. filepath=%s, errno=%d\n", SERVICE_NAME, filepath, errno);
-				close(fd); return -1;
-			}
+    // delimiter is NULL string
+    else {
+        if (fixed_length && !_fill_spaces) {
+            retval = fstat(fd, &filestat);
+            if (retval < 0) {
+                OFCOM_MSG_FPRINTF4(stderr, UISVR_MSG_STAT_FUNC_ERROR, SERVICE_NAME, filepath, strerror(errno), retval);
+                sprintf(ret_msg,"%s: fstat() function failed. filepath=%s, errno=%d\n", SERVICE_NAME, filepath, errno);
+                close(fd); return -1;
+            }
 
-			reclen = filestat.st_size % maxlen;
-			if (reclen) {
-				OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_RECORD_LENGTH_ERROR, SERVICE_NAME, reclen, maxlen);
-				sprintf(ret_msg,"%s: last record is shorter than the fixed length. reclen=%d,maxlen=%d\n", SERVICE_NAME, reclen, maxlen);
-				close(fd); return -1;
-			}
-		}
-	}
+            reclen = filestat.st_size % maxlen;
+            if (reclen) {
+                OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_RECORD_LENGTH_ERROR, SERVICE_NAME, reclen, maxlen);
+                sprintf(ret_msg,"%s: last record is shorter than the fixed length. reclen=%d,maxlen=%d\n", SERVICE_NAME, reclen, maxlen);
+                close(fd); return -1;
+            }
+        }
+    }
 
     close(fd);
     return 0;
@@ -918,11 +921,11 @@ static int _dssave_dataset_inner(int fdin, int fdout, int dcb_type, char* dsorg,
             if( n_read == 0 ) break;
             else reclen = n_read;
 
-			if (reclen < maxlen && _fill_spaces) {
-				memset(rec + reclen, ' ', maxlen - reclen);
-				reclen = maxlen;
-			}
-			
+            if (reclen < maxlen && _fill_spaces) {
+                memset(rec + reclen, ' ', maxlen - reclen);
+                reclen = maxlen;
+            }
+            
             /* write data */
             if( ((dcb_type == DSIO_DCB_TYPE_NVSM) && !(strcmp(dsorg, "DA"))) ||
                 (dcb_type == DSIO_DCB_TYPE_BDAM)) {
@@ -941,8 +944,8 @@ static int _dssave_dataset_inner(int fdin, int fdout, int dcb_type, char* dsorg,
                     free(buf); free(rec); return retval;
                 }
             }
-			
-			/* increase rec_count */
+            
+            /* increase rec_count */
             rec_count++;
         }
     }
