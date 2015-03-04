@@ -6,17 +6,15 @@
  * Used service:
  *      OFRUISVRGDGDEL
  *
- * To service:
+ * Paramerters to service:
  *      FB_TACF_TOKEN(string): TACF token
  *      FB_DSNAME(string): GDG name
  *      FB_CATNAME(string): catalog name (optional)
  *      FB_TYPE(string): delete option for Forced (optional)
  *
- * From service:
+ * Return values from service:
  *      FB_RETMSG(string): error message
  *
- * NOTE:
- * Should the wildcard option for gdgname be checked?
  */
 
 #include <stdio.h>
@@ -34,26 +32,19 @@
 #include "dscom.h"
 #include "nvsm.h"
 
-
 extern char *gdgdelete_version;
 extern char *gdgdelete_build_info;
 
-
 char gdgdelete_gdgname[DS_DSNAME_LEN + 2] = {0,};
 char gdgdelete_catalog[DS_DSNAME_LEN + 2] = {0,};
-
 int gdgdelete_force = 0;
 
 int error_return(int error_code, char *function_name);
 int system_error(char *function_name);
-
 int check_args(int argc, char *argv[]);
 int print_usage();
-
 int validate_param();
-
-int init_libraries();
-
+int set_field_buffer(FBUF * fbuf);
 int log_a_record(char *title, char *record, int rcode);
 
 static void _signal_handler(int signo)
@@ -145,31 +136,10 @@ int main(int argc, char *argv[])
 		goto _GDGDELETE_MAIN_ERR_RETURN_02;
 	}
 	
-	/* fbput FB_DSNAME */
-	retval = fbput(snd_buf, FB_DSNAME, gdgdelete_gdgname, 0);
-	if (retval == -1)
-	{
-		fprintf(stderr, "gdgdelete: ***An error occurred while storing DSNAME in field buffer->%s\n", fbstrerror(fberror)); 
+	/* set field buffer parameters */
+	retval = set_field_buffer(snd_buf);
+	if (retval < 0)
 		goto _GDGDELETE_MAIN_ERR_RETURN_03;
-	}
-
-	/* fbput FB_CATNAME */
-	retval = fbput(snd_buf, FB_CATNAME, gdgdelete_catalog, 0);
-	if (retval == -1)
-	{
-		fprintf(stderr, "gdgdelete: ***An error occurred while storing CATNAME in field buffer->%s\n", fbstrerror(fberror)); 
-		goto _GDGDELETE_MAIN_ERR_RETURN_03;
-	}
-	
-// force option should be specified here
-	/* fbput FB_TYPE */
-	if (gdgdelete_force)
-		retval = fbput(snd_buf, FB_TYPE, "F", 0);
-	if (retval == -1)
-	{
-		fprintf(stderr, "gdgdelete: ***An error occurred while storing TYPE in field buffer->%s\n", fbstrerror(fberror)); 
-		goto _GDGDELETE_MAIN_ERR_RETURN_03;
-	}
 	
 	/* tmax service call */
 	retval = tpcall("OFRUISVRGDGDEL", (char *)snd_buf, 0, (char **)&rcv_buf, &rcv_len, TPNOFLAGS);
@@ -297,6 +267,42 @@ int validate_param()
 
 	return 0;
 }
+
+
+int set_field_buffer(FBUF * fbuf)
+{
+	int retval;
+	
+	/* fbput FB_DSNAME */
+	retval = fbput(fbuf, FB_DSNAME, gdgdelete_gdgname, 0);
+	if (retval == -1)
+	{
+		fprintf(stderr, "gdgdelete: ***An error occurred while storing DSNAME in field buffer->%s\n", fbstrerror(fberror)); 
+		return -1;
+	}
+
+	/* fbput FB_CATNAME */
+	retval = fbput(fbuf, FB_CATNAME, gdgdelete_catalog, 0);
+	if (retval == -1)
+	{
+		fprintf(stderr, "gdgdelete: ***An error occurred while storing CATNAME in field buffer->%s\n", fbstrerror(fberror)); 
+		return -1;
+	}
+	
+	/* fbput FB_TYPE */
+	if (gdgdelete_force)
+	{
+		retval = fbput(fbuf, FB_TYPE, "F", 0);
+		if (retval == -1)
+		{
+			fprintf(stderr, "gdgdelete: ***An error occurred while storing TYPE in field buffer->%s\n", fbstrerror(fberror)); 
+			return -1;
+		}
+	}
+	
+	return 0;
+}
+
 
 int log_a_record(char *title, char *record, int rcode)
 {
