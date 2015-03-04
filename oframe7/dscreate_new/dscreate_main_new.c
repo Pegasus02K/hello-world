@@ -6,7 +6,7 @@
  * Used service:
  *      OFRUISVRDSCRE
  *
- * To service:
+ * Parmeters to service:
  *      FB_TACF_TOKEN(string): TACF token 
  *      FB_DSNAME(string): dataset name
  *      FB_ARGS(string): dataset attributes
@@ -21,7 +21,7 @@
  *      R: define only the catalog entry for the dataset (recatalog)
  *      N: do not catalog the dataset newly created (nocatalog)
  *
- * From service:
+ * Return values from service:
  *      FB_RETMSG(strong): error message
  *
  */
@@ -48,20 +48,12 @@ extern char *dscreate_version;
 extern char *dscreate_build_info;
 
 char dscreate_dsname[DS_DSNAME_LEN + 2] = {0,};
-
 char dscreate_catalog[DS_DSNAME_LEN + 2] = {0,};
 char dscreate_volser[DS_VOLSER_LEN + 2] = {0,};
 char dscreate_unit[DS_UNIT_LEN + 2] = {0,};
 char dscreate_member[NVSM_MEMBER_LEN + 2] = {0,};
-
 char dscreate_dsorg[8] = {0,};
 char dscreate_recfm[8] = {0,};
-
-int32_t dscreate_blksize = 0;
-int16_t dscreate_lrecl = 0;
-int16_t dscreate_keylen = 0;
-int16_t dscreate_keypos = 0;
-
 char dscreate_space[256] = {0,};
 char dscreate_expdt[8+2] = {0,};
 int dscreate_retpd = 0;
@@ -69,26 +61,26 @@ int dscreate_retpd = 0;
 int dscreate_nocatalog = 0;
 int dscreate_recatalog = 0;
 
+int32_t dscreate_blksize = 0;
+int16_t dscreate_lrecl = 0;
+int16_t dscreate_keylen = 0;
+int16_t dscreate_keypos = 0;
+
 char dscreate_args[1024] = {0,};
 char dscreate_type = 0;
-
 char dscreate_nocatalog_to_svr[4] = {0,};
 char dscreate_primary[100] = {0,};
 char dscreate_secondary[100] = {0,};
 char dscreate_directory[100] = {0,};
 char dscreate_avgval[100] = {0,};
 
-
 int error_return(int error_code, char *function_name);
-
 int check_args(int argc, char *argv[]);
 int print_usage();
-
 int validate_param();
-
+int set_field_buffer(FBUF * fbuf);
 int check_ds_name();
 int log_a_record(char *title, char *record, int rcode);
-
 int process_space_param(char *param);
 
 static void _signal_handler(int signo)
@@ -139,6 +131,12 @@ int main(int argc, char *argv[])
 	/* validate parameters */
 	retval = validate_param();
 	if(retval < 0) goto _DSCREATE_MAIN_ERR_RETURN_00;
+	
+	/* put arguments altogether */
+	sprintf(dscreate_args, "%s;%s;%s;%s;%s;%d;%d;%s;%s;%d;%d;%s;%s;%s;%s;%s;",
+		dscreate_member, dscreate_volser, dscreate_dsorg, dscreate_recfm, dscreate_unit, dscreate_lrecl,
+		dscreate_blksize, dscreate_expdt, dscreate_catalog, dscreate_keylen,
+		dscreate_keypos, dscreate_nocatalog_to_svr, dscreate_primary, dscreate_secondary, dscreate_avgval, dscreate_directory);
 	
 	/* convert retpd to expdt */
 	sprintf(dscreate_expdt, "%08d", ofcom_add_days(ofcom_sys_date(), dscreate_retpd));
@@ -206,35 +204,10 @@ int main(int argc, char *argv[])
 		goto _DSCREATE_MAIN_ERR_RETURN_02;
 	}
 	
-	/* fbput FB_DSNAME */
-	retval = fbput(snd_buf, FB_DSNAME, dscreate_dsname, 0);
-	if (retval == -1)
-	{
-		fprintf(stderr, "dscreate: ***An error occurred while storing DSNAME in field buffer->%s\n", fbstrerror(fberror)); 
+	retval = set_field_buffer(snd_buf);
+	if (retval < 0)
 		goto _DSCREATE_MAIN_ERR_RETURN_03;
-	}
 	
-	/* fbput FB_ARGS */	
-	sprintf(dscreate_args, "%s;%s;%s;%s;%s;%d;%d;%s;%s;%d;%d;%s;%s;%s;%s;%s;",
-			dscreate_member, dscreate_volser, dscreate_dsorg, dscreate_recfm, dscreate_unit, dscreate_lrecl,
-			dscreate_blksize, dscreate_expdt, dscreate_catalog, dscreate_keylen,
-			dscreate_keypos, dscreate_nocatalog_to_svr, dscreate_primary, dscreate_secondary, dscreate_avgval, dscreate_directory);
-	retval = fbput(snd_buf, FB_ARGS, dscreate_args, 0);
-	if (retval == -1)
-	{
-		fprintf(stderr, "dscreate: ***An error occurred while storing ARGS in field buffer->%s\n", fbstrerror(fberror)); 
-		goto _DSCREATE_MAIN_ERR_RETURN_03;
-	}
-	
-	/* fbput FB_TYPE */
-	if (dscreate_type)
-		retval = fbput(snd_buf, FB_TYPE, (char*)&dscreate_type, 0);
-	if (retval == -1)
-	{
-		fprintf(stderr, "dscreate: ***An error occurred while storing TYPE in field buffer->%s\n", fbstrerror(fberror)); 
-		goto _DSCREATE_MAIN_ERR_RETURN_03;
-	}
-
 	/* create a new dataset: tmax service call */
 	retval = tpcall("OFRUISVRDSCRE", (char *)snd_buf, 0, (char **)&rcv_buf, &rcv_len, TPNOFLAGS);
 	if (retval < 0) 
@@ -562,6 +535,41 @@ int validate_param()
 		}
 	}
 
+	return 0;
+}
+
+
+int set_field_buffer(FBUF *fbuf)
+{
+	int retval;
+	
+	/* fbput FB_DSNAME */
+	retval = fbput(fbuf, FB_DSNAME, dscreate_dsname, 0);
+	if (retval == -1)
+	{
+		fprintf(stderr, "dscreate: ***An error occurred while storing DSNAME in field buffer->%s\n", fbstrerror(fberror)); 
+		return -1;
+	}
+	
+	/* fbput FB_ARGS */
+	retval = fbput(fbuf, FB_ARGS, dscreate_args, 0);
+	if (retval == -1)
+	{
+		fprintf(stderr, "dscreate: ***An error occurred while storing ARGS in field buffer->%s\n", fbstrerror(fberror)); 
+		return -1;
+	}
+	
+	/* fbput FB_TYPE */
+	if (dscreate_type)
+	{
+		retval = fbput(fbuf, FB_TYPE, (char*)&dscreate_type, 0);
+		if (retval == -1)
+		{
+			fprintf(stderr, "dscreate: ***An error occurred while storing TYPE in field buffer->%s\n", fbstrerror(fberror)); 
+			return -1;
+		}
+	}
+	
 	return 0;
 }
 
