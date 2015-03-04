@@ -347,10 +347,10 @@ int set_field_buffer(FBUF * fbuf)
 		strcat(dsdelete_dsnwmem, dsdelete_member);
 		strcat(dsdelete_dsnwmem, ")");
 		
-		retval = fbput(snd_buf, FB_DSNAME, dsdelete_dsnwmem, 0);
+		retval = fbput(fbuf, FB_DSNAME, dsdelete_dsnwmem, 0);
 	}
 	else
-		retval = fbput(snd_buf, FB_DSNAME, dsdelete_dsname, 0);
+		retval = fbput(fbuf, FB_DSNAME, dsdelete_dsname, 0);
 	if ( retval == -1 )
 	{
 		fprintf(stderr, "dsdelete: ***An error occurred while storing DSNAME in field buffer->%s\n", fbstrerror(fberror)); 
@@ -358,7 +358,7 @@ int set_field_buffer(FBUF * fbuf)
 	}
 
 	/* fbput FB_CATNAME */
-	retval = fbput(snd_buf, FB_CATNAME, dsdelete_catalog, 0);
+	retval = fbput(fbuf, FB_CATNAME, dsdelete_catalog, 0);
 	if ( retval == -1 )
 	{
 		fprintf(stderr, "dsdelete: ***An error occurred while storing CATNAME in field buffer->%s\n", fbstrerror(fberror)); 
@@ -366,7 +366,7 @@ int set_field_buffer(FBUF * fbuf)
 	}
 
 	/* fbput FB_VOLUME */
-	retval = fbput(snd_buf, FB_VOLUME, dsdelete_volser, 0);
+	retval = fbput(fbuf, FB_VOLUME, dsdelete_volser, 0);
 	if ( retval == -1 )
 	{
 		fprintf(stderr, "dsdelete: ***An error occurred while storing VOLUME in field buffer->%s\n", fbstrerror(fberror)); 
@@ -376,7 +376,7 @@ int set_field_buffer(FBUF * fbuf)
 	/* fbput FB_TYPE */
 	if ( dsdelete_uncatalog )
 	{
-		retval = fbput(snd_buf, FB_TYPE, "u", 0);
+		retval = fbput(fbuf, FB_TYPE, "u", 0);
 		if (retval == -1)
 		{
 			fprintf(stderr, "dsdelete: ***An error occurred while storing TYPE(uncatalog option) in field buffer->%s\n", fbstrerror(fberror)); 
@@ -385,7 +385,7 @@ int set_field_buffer(FBUF * fbuf)
 	}
 	if ( dsdelete_ignore )
 	{
-		retval = fbput(snd_buf, FB_TYPE, "I", 0);
+		retval = fbput(fbuf, FB_TYPE, "I", 0);
 		if (retval == -1)
 		{
 			fprintf(stderr, "dsdelete: ***An error occurred while storing TYPE(ignore option) in field buffer->%s\n", fbstrerror(fberror)); 
