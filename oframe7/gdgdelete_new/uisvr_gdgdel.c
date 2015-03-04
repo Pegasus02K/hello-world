@@ -51,11 +51,11 @@ void OFRUISVRGDGDEL(TPSVCINFO *tpsvcinfo)
     icf_result_t result;
 
     char lockname[256];
-	
-	// added to handle Force option
-	char s_force = 0;
-	
-	int delete_flags = AMS_DELETE_DEFAULT;
+    
+    // added to handle Force option
+    char s_force = 0;
+    
+    int delete_flags = AMS_DELETE_DEFAULT;
 
     /* initialize */
     memset(s_dsname , 0x00, sizeof(s_dsname));
@@ -95,33 +95,39 @@ void OFRUISVRGDGDEL(TPSVCINFO *tpsvcinfo)
         sprintf(ret_msg, UISVR_MSG_SVRCOM_FUNCTION_ERROR, SERVICE_NAME, "svrcom_fbget", retval);
         goto _GDGDEL_MAIN_ERR_TPFAIL_01;
     }
-	
-	/* get type */
-	retval = svrcom_fbget_opt(rcv_buf, FB_TYPE, &s_force, 1);
-	if (retval < 0 && retval != SVRCOM_ERR_FBNOENT)
-	{
-		OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_SVRCOM_FUNCTION_ERROR, SERVICE_NAME, "svrcom_fbget", retval);
-		goto _GDGDEL_MAIN_ERR_TPFAIL_01;
-	}
+    
+    /* get type */
+    retval = svrcom_fbget_opt(rcv_buf, FB_TYPE, &s_force, 1);
+    if (retval < 0 && retval != SVRCOM_ERR_FBNOENT)
+    {
+        OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_SVRCOM_FUNCTION_ERROR, SERVICE_NAME, "svrcom_fbget", retval);
+        goto _GDGDEL_MAIN_ERR_TPFAIL_01;
+    }
 
-   	/* check if GDG name is invalid */
-	if (dscom_check_dsname(s_dsname) < 0 ) {
-       	OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_INVALID_DSN_ERROR, SERVICE_NAME, s_dsname);
+       /* check if GDG name is invalid */
+    if (dscom_check_dsname(s_dsname) < 0 ) {
+           OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_INVALID_DSN_ERROR, SERVICE_NAME, s_dsname);
         sprintf(ret_msg, "%s: invalid GDG name. gdgname=%s\n", SERVICE_NAME, s_dsname);
         retval = SVRCOM_ERR_INVALID_PARAM; goto _GDGDEL_MAIN_ERR_TPFAIL_01;
-	}
+    }
+    
+    /* check if wild card is used */
+    if( strchr(s_dsname, '*') || strchr(s_dsname, '%') ) {
+        sprintf(ret_msg, "%s: wild card character is not allowed in gdgname. gdgname=%s\n", SERVICE_NAME, s_dsname);
+        retval = SVRCOM_ERR_INVALID_PARAM; goto _GDGDEL_MAIN_ERR_TPFAIL_01;
+    }
+    
+    /* check catalog name */
+    if (s_catalog[0] != '\0') {
+        retval = dscom_check_dsname(s_catalog);
+        if (retval < 0) {
+            OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_INVALID_CATNAME_ERROR, SERVICE_NAME, s_catalog);
+            sprintf(ret_msg, "%s: invalid catalog name. catname=%s\n", SERVICE_NAME, s_catalog);
+            retval = SVRCOM_ERR_INVALID_PARAM; goto _GDGDEL_MAIN_ERR_TPFAIL_01;
+        }
+    }
 
-	/* check catalog name */
-	if (s_catalog[0] != '\0') {
-		retval = dscom_check_dsname(s_catalog);
-		if (retval < 0) {
-			OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_INVALID_CATNAME_ERROR, SERVICE_NAME, s_catalog);
-			sprintf(ret_msg, "%s: invalid catalog name. catname=%s\n", SERVICE_NAME, s_catalog);
-			retval = SVRCOM_ERR_INVALID_PARAM; goto _GDGDEL_MAIN_ERR_TPFAIL_01;
-		}
-	}
-
-	/* uisvr login process */
+    /* uisvr login process */
     retval = uisvr_login_process(SERVICE_NAME, rcv_buf);
     if (retval < 0) {
         OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_INNER_FUNCTION_ERROR, SERVICE_NAME, "uisvr_login_process", retval);
@@ -162,9 +168,9 @@ void OFRUISVRGDGDEL(TPSVCINFO *tpsvcinfo)
     }
 
 // added to handle Force option
-	// set delete flags 
-	if(s_force) delete_flags |= AMS_DELETE_FORCE;
-	
+    // set delete flags 
+    if(s_force) delete_flags |= AMS_DELETE_FORCE;
+    
     /* compose lock name */
     strcpy( lockname, result.catname );
     strcat( lockname, ":" );
