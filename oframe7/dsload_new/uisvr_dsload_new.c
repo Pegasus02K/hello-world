@@ -278,8 +278,8 @@ static int _get_params(FBUF *rcv_buf)
     /* fbget multiple options from FB_TYPE */
     while (1)
     {
-        retval = svrcom_fbget_opt(rcv_buf, FB_TYPE, &load_type, 1)
-        if  (retval< 0)
+        retval = svrcom_fbget_opt(rcv_buf, FB_TYPE, &load_type, 1);
+        if (retval<0)
         {
             if (retval != SVRCOM_ERR_FBNOENT)
             {
