@@ -79,13 +79,13 @@ void OFRUISVRDSCRE(TPSVCINFO *tpsvcinfo)
 
     dsalc_req_t req;
     int  handle;
-	int  dsn_type;
+    int  dsn_type;
     int  dsalc_alloc_flag = DSALC_ALLOCATE_DEFAULT;
     int  ams_search_flag = AMS_SEARCH_DEFAULT;
 
     dsio_dcb_t **dcbs = NULL;
-    int dcb_type;	
-	
+    int dcb_type;    
+    
     /* service start */
     retval = svrcom_svc_start(SERVICE_NAME);
     if (retval != SVRCOM_ERR_SUCCESS ) {
@@ -159,19 +159,19 @@ void OFRUISVRDSCRE(TPSVCINFO *tpsvcinfo)
     if ( *(cutpos + 1) ) { cut_nocatalog = cutpos + 1;   cutpos = strchr(cut_nocatalog,';');   if (cutpos) *cutpos = 0; }
     if ( *(cutpos + 1) ) { cut_primary = cutpos + 1;     cutpos = strchr(cut_primary,';');     if (cutpos) *cutpos = 0; }
     if ( *(cutpos + 1) ) { cut_secondary = cutpos + 1;   cutpos = strchr(cut_secondary,';');   if (cutpos) *cutpos = 0; }
-    if ( *(cutpos + 1) ) { cut_avgval = cutpos + 1;   	 cutpos = strchr(cut_avgval,';');      if (cutpos) *cutpos = 0; }
+    if ( *(cutpos + 1) ) { cut_avgval = cutpos + 1;        cutpos = strchr(cut_avgval,';');      if (cutpos) *cutpos = 0; }
 
-    if ( *(cutpos + 1) ) { cut_directory = cutpos + 1;   	 cutpos = strchr(cut_directory,';');      if (cutpos) *cutpos = 0; }
+    if ( *(cutpos + 1) ) { cut_directory = cutpos + 1;        cutpos = strchr(cut_directory,';');      if (cutpos) *cutpos = 0; }
 
     /* check nocatalog option */
     if( cut_nocatalog && cut_nocatalog[0] ) {
-    	if( !strcasecmp(cut_nocatalog, "YES") || (strlen(cut_nocatalog) == 1 && toupper(cut_nocatalog[0]) == 'Y') ) {
-    		r_type = 'N';
-    	} else {
-	        OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_INVALID_NOCAT_ERROR, SERVICE_NAME, cut_nocatalog);
-        	sprintf(ret_msg, "%s: invalid nocatalog value. only YES or Y is allowed. nocatalog=%s\n", SERVICE_NAME, cut_nocatalog);
-        	retval = SVRCOM_ERR_INVALID_PARAM; goto _DSCRE_MAIN_ERR_TPFAIL_01;
-    	}
+        if( !strcasecmp(cut_nocatalog, "YES") || (strlen(cut_nocatalog) == 1 && toupper(cut_nocatalog[0]) == 'Y') ) {
+            r_type = 'N';
+        } else {
+            OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_INVALID_NOCAT_ERROR, SERVICE_NAME, cut_nocatalog);
+            sprintf(ret_msg, "%s: invalid nocatalog value. only YES or Y is allowed. nocatalog=%s\n", SERVICE_NAME, cut_nocatalog);
+            retval = SVRCOM_ERR_INVALID_PARAM; goto _DSCRE_MAIN_ERR_TPFAIL_01;
+        }
     }
 
     /* check dataset name */
@@ -182,15 +182,15 @@ void OFRUISVRDSCRE(TPSVCINFO *tpsvcinfo)
         retval = SVRCOM_ERR_INVALID_PARAM; goto _DSCRE_MAIN_ERR_TPFAIL_01;
     }
 
-	/* check member name */
-	if ( cut_member[0] ) {
-		retval = dscom_check_dsname2(s_dsname, cut_member);
-		if( retval < 0 ) {
-			OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_INVALID_MEMBER_ERROR, SERVICE_NAME, cut_member);
-			sprintf(ret_msg, "%s: invalid dataset name or member name. dsname=%s,member=%s\n", SERVICE_NAME, s_dsname, cut_member);
-			retval = SVRCOM_ERR_INVALID_PARAM; goto _DSCRE_MAIN_ERR_TPFAIL_01;
-		}
-	}
+    /* check member name */
+    if ( cut_member[0] ) {
+        retval = dscom_check_dsname2(s_dsname, cut_member);
+        if( retval < 0 ) {
+            OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_INVALID_MEMBER_ERROR, SERVICE_NAME, cut_member);
+            sprintf(ret_msg, "%s: invalid dataset name or member name. dsname=%s,member=%s\n", SERVICE_NAME, s_dsname, cut_member);
+            retval = SVRCOM_ERR_INVALID_PARAM; goto _DSCRE_MAIN_ERR_TPFAIL_01;
+        }
+    }
 
     /* check dsname type */
     if (dsn_type == DSCOM_DSN_TYPE_PDS_MEMBER) {
@@ -198,57 +198,57 @@ void OFRUISVRDSCRE(TPSVCINFO *tpsvcinfo)
         cut_member = cutpos + 1; /* separate member name */
         cutpos = strchr(cut_member,')'); *cutpos = 0;
         if( cut_member && cut_member[0] ) {
-        	if( dscom_check_dsname2(s_dsname, cut_member) < 0 ) {
-	        	OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_INVALID_MEMBER_ERROR, SERVICE_NAME, cut_member);
-    	    	sprintf(ret_msg, "%s: invalid member name. member=%s\n", SERVICE_NAME, cut_member);
-	        	retval = SVRCOM_ERR_INVALID_PARAM; goto _DSCRE_MAIN_ERR_TPFAIL_01;
-	        }
+            if( dscom_check_dsname2(s_dsname, cut_member) < 0 ) {
+                OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_INVALID_MEMBER_ERROR, SERVICE_NAME, cut_member);
+                sprintf(ret_msg, "%s: invalid member name. member=%s\n", SERVICE_NAME, cut_member);
+                retval = SVRCOM_ERR_INVALID_PARAM; goto _DSCRE_MAIN_ERR_TPFAIL_01;
+            }
         }
     }
 
     /* check if catalog name is invalid */
     if( cut_usercat && cut_usercat[0] ) { 
-    	retval = dscom_check_dsname(cut_usercat);
-    	if( retval < 0 ) {
-        	OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_INVALID_CATNAME_ERROR, SERVICE_NAME, cut_usercat);
-        	sprintf(ret_msg, "%s: invalid catalog name. catalog=%s\n", SERVICE_NAME, cut_usercat);
-        	retval = SVRCOM_ERR_INVALID_PARAM; goto _DSCRE_MAIN_ERR_TPFAIL_01;
-    	}	
+        retval = dscom_check_dsname(cut_usercat);
+        if( retval < 0 ) {
+            OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_INVALID_CATNAME_ERROR, SERVICE_NAME, cut_usercat);
+            sprintf(ret_msg, "%s: invalid catalog name. catalog=%s\n", SERVICE_NAME, cut_usercat);
+            retval = SVRCOM_ERR_INVALID_PARAM; goto _DSCRE_MAIN_ERR_TPFAIL_01;
+        }    
     }
    
     /* check if volume serial is invalid */
     if( cut_volume && cut_volume[0] ) {
         if( dscom_check_volser(cut_volume) < 0 ) {
-        	OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_INVALID_VOL_ERROR, SERVICE_NAME, cut_volume);
-   	    	sprintf(ret_msg, "%s: invalid volume serial. volume=%s\n", SERVICE_NAME, cut_volume);
-        	retval = SVRCOM_ERR_INVALID_PARAM; goto _DSCRE_MAIN_ERR_TPFAIL_01;
+            OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_INVALID_VOL_ERROR, SERVICE_NAME, cut_volume);
+               sprintf(ret_msg, "%s: invalid volume serial. volume=%s\n", SERVICE_NAME, cut_volume);
+            retval = SVRCOM_ERR_INVALID_PARAM; goto _DSCRE_MAIN_ERR_TPFAIL_01;
         }
     }    
     
     /* check if unit invalid */
     if( cut_unit && cut_unit[0] ) {
         if( dscom_check_unit(cut_unit) < 0 ) {
-        	OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_INVALID_UNIT_ERROR, SERVICE_NAME, cut_unit);
-   	    	sprintf(ret_msg, "%s: invalid unit name. unit=%s\n", SERVICE_NAME, cut_unit);
-        	retval = SVRCOM_ERR_INVALID_PARAM; goto _DSCRE_MAIN_ERR_TPFAIL_01;
+            OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_INVALID_UNIT_ERROR, SERVICE_NAME, cut_unit);
+               sprintf(ret_msg, "%s: invalid unit name. unit=%s\n", SERVICE_NAME, cut_unit);
+            retval = SVRCOM_ERR_INVALID_PARAM; goto _DSCRE_MAIN_ERR_TPFAIL_01;
         }
-    }    	
+    }        
     
     /* check if dataset organization is invalid */    
     if( cut_dsorg && cut_dsorg[0] ) {
         if( dscom_check_dsorg(cut_dsorg) < 0  ) {
-        	OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_INVALID_DSORG_ERROR, SERVICE_NAME, cut_dsorg);
-   	    	sprintf(ret_msg, "%s: invalid dataset organization. dsorg=%s\n", SERVICE_NAME, cut_dsorg);
-        	retval = SVRCOM_ERR_INVALID_PARAM; goto _DSCRE_MAIN_ERR_TPFAIL_01;
+            OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_INVALID_DSORG_ERROR, SERVICE_NAME, cut_dsorg);
+               sprintf(ret_msg, "%s: invalid dataset organization. dsorg=%s\n", SERVICE_NAME, cut_dsorg);
+            retval = SVRCOM_ERR_INVALID_PARAM; goto _DSCRE_MAIN_ERR_TPFAIL_01;
         }
     }    
         
     /* check if record format is specified */
     if( cut_recfm && cut_recfm[0] ) {
         if( dscom_check_recfm(cut_recfm) < 0  ) {
-        	OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_INVALID_RECFM_ERROR, SERVICE_NAME, cut_recfm);
-   	    	sprintf(ret_msg, "%s: invalid record format. recfm=%s\n", SERVICE_NAME, cut_recfm);
-        	retval = SVRCOM_ERR_INVALID_PARAM; goto _DSCRE_MAIN_ERR_TPFAIL_01;
+            OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_INVALID_RECFM_ERROR, SERVICE_NAME, cut_recfm);
+               sprintf(ret_msg, "%s: invalid record format. recfm=%s\n", SERVICE_NAME, cut_recfm);
+            retval = SVRCOM_ERR_INVALID_PARAM; goto _DSCRE_MAIN_ERR_TPFAIL_01;
         }
     }    
     
@@ -256,107 +256,107 @@ void OFRUISVRDSCRE(TPSVCINFO *tpsvcinfo)
     if( cut_blksize && cut_blksize[0] ) {
         /* check if block size is invalid */
         if( dscom_check_isdigit(cut_blksize) || dscom_check_blksize(atoi(cut_blksize)) < 0 ) {
-        	OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_INVALID_BLKSIZE_ERROR, SERVICE_NAME, cut_blksize);
-   	    	sprintf(ret_msg, "%s: invalid block size. blksize=%s\n", SERVICE_NAME, cut_blksize);
-        	retval = SVRCOM_ERR_INVALID_PARAM; goto _DSCRE_MAIN_ERR_TPFAIL_01;
+            OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_INVALID_BLKSIZE_ERROR, SERVICE_NAME, cut_blksize);
+               sprintf(ret_msg, "%s: invalid block size. blksize=%s\n", SERVICE_NAME, cut_blksize);
+            retval = SVRCOM_ERR_INVALID_PARAM; goto _DSCRE_MAIN_ERR_TPFAIL_01;
         }
     }    
-        	        
+                    
     /* check if record length is invalid */
     if( cut_lrecl && cut_lrecl[0] ) {
         if( dscom_check_isdigit(cut_lrecl) || dscom_check_lrecl(atoi(cut_lrecl)) < 0 ) {
-        	OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_INVALID_LRECL_ERROR, SERVICE_NAME, cut_lrecl);
-   	    	sprintf(ret_msg, "%s: invalid record length. lrecl=%s\n", SERVICE_NAME, cut_lrecl);
-        	retval = SVRCOM_ERR_INVALID_PARAM; goto _DSCRE_MAIN_ERR_TPFAIL_01;
+            OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_INVALID_LRECL_ERROR, SERVICE_NAME, cut_lrecl);
+               sprintf(ret_msg, "%s: invalid record length. lrecl=%s\n", SERVICE_NAME, cut_lrecl);
+            retval = SVRCOM_ERR_INVALID_PARAM; goto _DSCRE_MAIN_ERR_TPFAIL_01;
         }
     }       
-	
+    
     /* check if primary is invalid */
-	if( cut_primary && cut_primary[0] ) {
-		if( dscom_check_isdigit(cut_primary) ) {
-        	OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_INVALID_SECONDARY_ERROR, SERVICE_NAME, cut_primary);
-	    	sprintf(ret_msg, "%s: invalid primary space. primary=%s\n", SERVICE_NAME, cut_primary);
-      		retval = SVRCOM_ERR_INVALID_PARAM; goto _DSCRE_MAIN_ERR_TPFAIL_01;
-		}
-	}	
-	
+    if( cut_primary && cut_primary[0] ) {
+        if( dscom_check_isdigit(cut_primary) ) {
+            OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_INVALID_SECONDARY_ERROR, SERVICE_NAME, cut_primary);
+            sprintf(ret_msg, "%s: invalid primary space. primary=%s\n", SERVICE_NAME, cut_primary);
+              retval = SVRCOM_ERR_INVALID_PARAM; goto _DSCRE_MAIN_ERR_TPFAIL_01;
+        }
+    }    
+    
     /* check if secondary is invalid */
-	if( cut_secondary && cut_secondary[0] ) {
-		if( dscom_check_isdigit(cut_secondary) ) {
-        	OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_INVALID_PRIMARY_ERROR, SERVICE_NAME, cut_secondary);
-	    	sprintf(ret_msg, "%s: invalid secondary space. secondary=%s\n", SERVICE_NAME, cut_secondary);
-       		retval = SVRCOM_ERR_INVALID_PARAM; goto _DSCRE_MAIN_ERR_TPFAIL_01;
-		}
-	}
-	
+    if( cut_secondary && cut_secondary[0] ) {
+        if( dscom_check_isdigit(cut_secondary) ) {
+            OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_INVALID_PRIMARY_ERROR, SERVICE_NAME, cut_secondary);
+            sprintf(ret_msg, "%s: invalid secondary space. secondary=%s\n", SERVICE_NAME, cut_secondary);
+               retval = SVRCOM_ERR_INVALID_PARAM; goto _DSCRE_MAIN_ERR_TPFAIL_01;
+        }
+    }
+    
     /* check if directory is invalid */
-	if( cut_directory && cut_directory[0] ) {
-		if( dscom_check_isdigit(cut_directory) ) {
-        	OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_INVALID_DIR_ERROR, SERVICE_NAME, cut_directory);
-	    	sprintf(ret_msg, "%s: invalid secondary space. secondary=%s\n", SERVICE_NAME, cut_directory);
-       		retval = SVRCOM_ERR_INVALID_PARAM; goto _DSCRE_MAIN_ERR_TPFAIL_01;
-		}
-	}	
+    if( cut_directory && cut_directory[0] ) {
+        if( dscom_check_isdigit(cut_directory) ) {
+            OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_INVALID_DIR_ERROR, SERVICE_NAME, cut_directory);
+            sprintf(ret_msg, "%s: invalid secondary space. secondary=%s\n", SERVICE_NAME, cut_directory);
+               retval = SVRCOM_ERR_INVALID_PARAM; goto _DSCRE_MAIN_ERR_TPFAIL_01;
+        }
+    }    
     
     /* check if key length is specified */
     if( cut_keylen && cut_keylen[0] && atoi(cut_keylen) ) {
         /* check if key length is invalid */
         if( dscom_check_isdigit(cut_keylen) || dscom_check_keylen(atoi(cut_keylen)) < 0 ) {
-        	OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_INVALID_KEYLEN_ERROR, SERVICE_NAME, cut_keylen);
-   	    	sprintf(ret_msg, "%s: invalid key length. keylen=%s\n", SERVICE_NAME, cut_keylen);
-        	retval = SVRCOM_ERR_INVALID_PARAM; goto _DSCRE_MAIN_ERR_TPFAIL_01;
+            OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_INVALID_KEYLEN_ERROR, SERVICE_NAME, cut_keylen);
+               sprintf(ret_msg, "%s: invalid key length. keylen=%s\n", SERVICE_NAME, cut_keylen);
+            retval = SVRCOM_ERR_INVALID_PARAM; goto _DSCRE_MAIN_ERR_TPFAIL_01;
         }
 
         /* check if key offset is invalid */
         if( dscom_check_isdigit(cut_keypos) || dscom_check_keyoff(atoi(cut_keypos)) < 0 ) {
-        	OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_INVALID_KEYPOS_ERROR, SERVICE_NAME, cut_keypos);
-   	    	sprintf(ret_msg, "%s: invalid key position. keypos=%s\n", SERVICE_NAME, cut_keypos);
-        	retval = SVRCOM_ERR_INVALID_PARAM; goto _DSCRE_MAIN_ERR_TPFAIL_01;
+            OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_INVALID_KEYPOS_ERROR, SERVICE_NAME, cut_keypos);
+               sprintf(ret_msg, "%s: invalid key position. keypos=%s\n", SERVICE_NAME, cut_keypos);
+            retval = SVRCOM_ERR_INVALID_PARAM; goto _DSCRE_MAIN_ERR_TPFAIL_01;
         }
 
         /* check if key length + offset exceed record length */
         if( atoi(cut_keylen) < 0 || atoi(cut_lrecl) < atoi(cut_keylen) + atoi(cut_keypos) ) {
-        	OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_INVALID_KEYINFO_ERROR, SERVICE_NAME, cut_keypos);
-   	    	sprintf(ret_msg, "%s: invalid key information. lrecl=%s,keylen=%s,keypos=%s\n", SERVICE_NAME, cut_lrecl, cut_keylen, cut_keypos);
-        	retval = SVRCOM_ERR_INVALID_PARAM; goto _DSCRE_MAIN_ERR_TPFAIL_01;
+            OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_INVALID_KEYINFO_ERROR, SERVICE_NAME, cut_keypos);
+               sprintf(ret_msg, "%s: invalid key information. lrecl=%s,keylen=%s,keypos=%s\n", SERVICE_NAME, cut_lrecl, cut_keylen, cut_keypos);
+            retval = SVRCOM_ERR_INVALID_PARAM; goto _DSCRE_MAIN_ERR_TPFAIL_01;
         }
 
     /* otherwise key length is not specified */
     } else {
         /* check if dataset organization is IS */
         if( ! strcasecmp(cut_dsorg, "IS") ) {
-        	OFCOM_MSG_FPRINTF1(stderr, UISVR_MSG_INVALID_ISAM_KEYLEN_ERROR, SERVICE_NAME);
-   	    	sprintf(ret_msg, "%s: key length must be specified for ISAM dataset\n", SERVICE_NAME);
-        	retval = SVRCOM_ERR_INVALID_PARAM; goto _DSCRE_MAIN_ERR_TPFAIL_01;
+            OFCOM_MSG_FPRINTF1(stderr, UISVR_MSG_INVALID_ISAM_KEYLEN_ERROR, SERVICE_NAME);
+               sprintf(ret_msg, "%s: key length must be specified for ISAM dataset\n", SERVICE_NAME);
+            retval = SVRCOM_ERR_INVALID_PARAM; goto _DSCRE_MAIN_ERR_TPFAIL_01;
         }
         
         /* check if key position is specified */
         if( cut_keypos && cut_keypos[0] && atoi(cut_keypos) ) {
-        	OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_INVALID_KEYPOS_ERROR, SERVICE_NAME, cut_keypos);
-   	    	sprintf(ret_msg, "%s: key position must be specified with key length.\n", SERVICE_NAME);
-        	retval = SVRCOM_ERR_INVALID_PARAM; goto _DSCRE_MAIN_ERR_TPFAIL_01;
+            OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_INVALID_KEYPOS_ERROR, SERVICE_NAME, cut_keypos);
+               sprintf(ret_msg, "%s: key position must be specified with key length.\n", SERVICE_NAME);
+            retval = SVRCOM_ERR_INVALID_PARAM; goto _DSCRE_MAIN_ERR_TPFAIL_01;
         }        
     }    
     
     /* check if expiration date is specified */
     if( cut_expire && cut_expire[0] ) {
-		/* check if expiration date is invalid */
-		if( dscom_check_expdt_yyyymmdd(cut_expire) ) {
-			OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_INVALID_EXPDATE_ERROR, SERVICE_NAME, cut_expire);
-			sprintf(ret_msg, "%s: invalid expiration date. expdt=%s\n", SERVICE_NAME, cut_expire);
-			retval = SVRCOM_ERR_INVALID_PARAM; goto _DSCRE_MAIN_ERR_TPFAIL_01;
-		}
+        /* check if expiration date is invalid */
+        if( dscom_check_expdt_yyyymmdd(cut_expire) ) {
+            OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_INVALID_EXPDATE_ERROR, SERVICE_NAME, cut_expire);
+            sprintf(ret_msg, "%s: invalid expiration date. expdt=%s\n", SERVICE_NAME, cut_expire);
+            retval = SVRCOM_ERR_INVALID_PARAM; goto _DSCRE_MAIN_ERR_TPFAIL_01;
+        }
     }    
 
-	/* check if avgval is specified */
-	if( cut_avgval && cut_avgval[0] ) {
-		/* check if avgval is invalid */
-		if( dscom_check_avgval(cut_avgval) ) {
-			OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_INVALID_SPACE_UNIT_ERROR, SERVICE_NAME, cut_avgval);
-			sprintf(ret_msg, "%s: invalid TRK/CYL/blklth value. TRK/CYL/blklgth=%s\n", SERVICE_NAME, cut_avgval);
-			retval = SVRCOM_ERR_INVALID_PARAM; goto _DSCRE_MAIN_ERR_TPFAIL_01;
-		}
-	}
+    /* check if avgval is specified */
+    if( cut_avgval && cut_avgval[0] ) {
+        /* check if avgval is invalid */
+        if( dscom_check_avgval(cut_avgval) ) {
+            OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_INVALID_SPACE_UNIT_ERROR, SERVICE_NAME, cut_avgval);
+            sprintf(ret_msg, "%s: invalid TRK/CYL/blklth value. TRK/CYL/blklgth=%s\n", SERVICE_NAME, cut_avgval);
+            retval = SVRCOM_ERR_INVALID_PARAM; goto _DSCRE_MAIN_ERR_TPFAIL_01;
+        }
+    }
     
     /* uisvr login process */
     retval = uisvr_login_process(SERVICE_NAME, rcv_buf);
@@ -429,14 +429,14 @@ void OFRUISVRDSCRE(TPSVCINFO *tpsvcinfo)
 
 
     req.space.avgval = atoi(cut_avgval);
-	if( !req.space.avgval ) {
-		if( ! strcasecmp(cut_avgval, "CYL") )
-			req.space.avgval = DS_SPACE_CYL;
-		else if( ! strcasecmp(cut_avgval, "TRK") )
-			req.space.avgval = DS_SPACE_TRK;
-	 	else if( req.space.primary ) 
-			req.space.avgval = 1024;
-	}
+    if( !req.space.avgval ) {
+        if( ! strcasecmp(cut_avgval, "CYL") )
+            req.space.avgval = DS_SPACE_CYL;
+        else if( ! strcasecmp(cut_avgval, "TRK") )
+            req.space.avgval = DS_SPACE_TRK;
+         else if( req.space.primary ) 
+            req.space.avgval = 1024;
+    }
 
     strcpy(req.dsattr.dsorg, cut_dsorg);
     strcpy(req.dsattr.recfm, cut_recfm);
@@ -448,8 +448,8 @@ void OFRUISVRDSCRE(TPSVCINFO *tpsvcinfo)
 
     strcpy(req.dsattr.expdt, cut_expire);
 
-	/* set lock wait flag */
-	req.lock.lock_wait = LOCKM_LOCK_WAIT_IMMEDIATE;
+    /* set lock wait flag */
+    req.lock.lock_wait = LOCKM_LOCK_WAIT_IMMEDIATE;
 
     /* set default catalog */
     retval = ams_use_catalog(s_catalog);
@@ -547,14 +547,14 @@ void OFRUISVRDSCRE(TPSVCINFO *tpsvcinfo)
         retval = handle; goto _DSCRE_MAIN_ERR_TPFAIL_05;
     }
 
-	if (toupper(r_type) != 'R') {    
+    if (toupper(r_type) != 'R') {    
         int dsio_flags = DSIO_OPEN_OUTPUT | DSIO_ACCESS_SEQUENTIAL | DSIO_LOCK_EXCLUSIVE;
         retval = dsio_batch_open(dsalc_get_dcbs(handle), dsio_flags);
         if (retval < 0) {
-    	    OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_DSIO_FUNCTION_ERROR, SERVICE_NAME, "dsio_batch_open", retval);
-        	sprintf(ret_msg, "%s: %s() failed. rc=%d\n", SERVICE_NAME, "dsio_batch_open", retval);
-        	goto _DSCRE_MAIN_ERR_TPFAIL_07;
-    	}
+            OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_DSIO_FUNCTION_ERROR, SERVICE_NAME, "dsio_batch_open", retval);
+            sprintf(ret_msg, "%s: %s() failed. rc=%d\n", SERVICE_NAME, "dsio_batch_open", retval);
+            goto _DSCRE_MAIN_ERR_TPFAIL_07;
+        }
         retval = dsio_batch_close(retval, DSIO_CLOSE_DEFAULT);
         if (retval < 0) {
             OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_DSIO_FUNCTION_ERROR, SERVICE_NAME, "dsio_batch_close", retval);
@@ -564,34 +564,34 @@ void OFRUISVRDSCRE(TPSVCINFO *tpsvcinfo)
     }
     
     /* if recatalog, update dcb information for record count. refer to IMS65988 */
-	if (toupper(r_type) == 'R') {    
-    	/* retrieve dcbs from allocation handle */
-    	dcbs = dsalc_get_dcbs(handle);
-    	if (! dcbs) {
-        	retval = -1;
-        	OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_DSALC_FUNCTION_ERROR, SERVICE_NAME, "dsalc_get_dcbs", retval);
-        	sprintf(ret_msg, "%s: %s() failed. rc=%d\n", SERVICE_NAME, "dsalc_get_dcbs", retval);
-        	goto _DSCRE_MAIN_ERR_TPFAIL_07;
-    	}
+    if (toupper(r_type) == 'R') {    
+        /* retrieve dcbs from allocation handle */
+        dcbs = dsalc_get_dcbs(handle);
+        if (! dcbs) {
+            retval = -1;
+            OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_DSALC_FUNCTION_ERROR, SERVICE_NAME, "dsalc_get_dcbs", retval);
+            sprintf(ret_msg, "%s: %s() failed. rc=%d\n", SERVICE_NAME, "dsalc_get_dcbs", retval);
+            goto _DSCRE_MAIN_ERR_TPFAIL_07;
+        }
 
-    	/* retrieve dcb_type & dcb_count from dcbs */
-    	retval = dsio_dcb_get_type(dcbs, & dcb_type, NULL);
-    	if (retval < 0) {
-	        OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_DSIO_FUNCTION_ERROR, SERVICE_NAME, "dsio_dcb_get_type", retval);
-        	sprintf(ret_msg, "%s: %s() failed. rc=%d\n", SERVICE_NAME, "dsio_dcb_get_type", retval);
-        	goto _DSCRE_MAIN_ERR_TPFAIL_07;
-    	}
+        /* retrieve dcb_type & dcb_count from dcbs */
+        retval = dsio_dcb_get_type(dcbs, & dcb_type, NULL);
+        if (retval < 0) {
+            OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_DSIO_FUNCTION_ERROR, SERVICE_NAME, "dsio_dcb_get_type", retval);
+            sprintf(ret_msg, "%s: %s() failed. rc=%d\n", SERVICE_NAME, "dsio_dcb_get_type", retval);
+            goto _DSCRE_MAIN_ERR_TPFAIL_07;
+        }
 
-    	/* check if dataset is non-vsam */
-    	if( dcb_type == DSIO_DCB_TYPE_NVSM ) {
-	        /* call a function to update DCB report */
-        	retval = dsio_update_report(dcbs, 0);
-        	if (retval < 0) {
-	            OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_DSIO_FUNCTION_ERROR, SERVICE_NAME, "dsio_update_report", retval);
-            	sprintf(ret_msg, "%s: %s() failed. rc=%d\n", SERVICE_NAME, "dsio_update_report", retval);
-            	goto _DSCRE_MAIN_ERR_TPFAIL_07;
-        	}
-    	}
+        /* check if dataset is non-vsam */
+        if( dcb_type == DSIO_DCB_TYPE_NVSM ) {
+            /* call a function to update DCB report */
+            retval = dsio_update_report(dcbs, 0);
+            if (retval < 0) {
+                OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_DSIO_FUNCTION_ERROR, SERVICE_NAME, "dsio_update_report", retval);
+                sprintf(ret_msg, "%s: %s() failed. rc=%d\n", SERVICE_NAME, "dsio_update_report", retval);
+                goto _DSCRE_MAIN_ERR_TPFAIL_07;
+            }
+        }
     }
 
     /* dispose */
@@ -649,11 +649,11 @@ void OFRUISVRDSCRE(TPSVCINFO *tpsvcinfo)
     uisvr_logout_process();
     
     /* fbput ret_msg */
-	if (r_type == 'R') {
-		sprintf(ret_msg, "%s: Dataset Recatalog OK. dsn=%s\n", SERVICE_NAME, s_composed);
-	} else {
-    	sprintf(ret_msg, "%s: Dataset Create OK. dsn=%s\n", SERVICE_NAME, s_composed);
-	}
+    if (r_type == 'R') {
+        sprintf(ret_msg, "%s: Dataset Recatalog OK. dsn=%s\n", SERVICE_NAME, s_composed);
+    } else {
+        sprintf(ret_msg, "%s: Dataset Create OK. dsn=%s\n", SERVICE_NAME, s_composed);
+    }
 
     svrcom_fbput(snd_buf, FB_RETMSG, ret_msg, 0);
 
@@ -680,9 +680,9 @@ _DSCRE_MAIN_ERR_TPFAIL_02:
     uisvr_logout_process();
 
 _DSCRE_MAIN_ERR_TPFAIL_01:
-	if( retval == SAF_ERR_NOT_AUTHORIZED )
-		sprintf(ret_msg, "You are not authorized to access this resource.\n");	
-		
+    if( retval == SAF_ERR_NOT_AUTHORIZED )
+        sprintf(ret_msg, "You are not authorized to access this resource.\n");    
+        
     if ( snd_buf ) svrcom_fbput(snd_buf, FB_RETMSG, ret_msg, 0);
 
 _DSCRE_MAIN_ERR_TPFAIL_00:
