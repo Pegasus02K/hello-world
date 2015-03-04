@@ -40,12 +40,12 @@
 #define SERVICE_NAME    "OFRUISVRDSTOUCH"
 
 
-static char dataset_name[DS_DSNAME_LEN + 2];
-static char member_name[NVSM_MEMBER_LEN + 2];
-static char volume_serial[DS_VOLSER_LEN + 2];
-static char user_catalog[DS_DSNAME_LEN + 2];
-static char creation_date[256];
-static int use_syssec;
+static char dstouch_dsname[DS_DSNAME_LEN + 2];
+static char dstouch_member[NVSM_MEMBER_LEN + 2];
+static char dstouch_volser[DS_VOLSER_LEN + 2];
+static char dstouch_catalog[DS_DSNAME_LEN + 2];
+static char dstouch_credt[256];
+static int dstouch_use_syssec;
 
 extern int dsalc_new_allocate_method;
 
@@ -88,12 +88,14 @@ void OFRUISVRDSTOUCH(TPSVCINFO *tpsvcinfo)
     }
 
     /* initialize parameter */
-    memset(dataset_name,0x00,sizeof(dataset_name));
-    memset(member_name,0x00,sizeof(member_name));
-    memset(volume_serial,0x00,sizeof(volume_serial));
-    memset(user_catalog,0x00,sizeof(user_catalog));
-    memset(creation_date,0x00,sizeof(creation_date));
-    use_syssec = 0;
+    memset(dstouch_dsname,0x00,sizeof(dstouch_dsname));
+    memset(dstouch_member,0x00,sizeof(dstouch_member));
+    memset(dstouch_volser,0x00,sizeof(dstouch_volser));
+    memset(dstouch_catalog,0x00,sizeof(dstouch_catalog));
+    memset(dstouch_credt,0x00,sizeof(dstouch_credt));
+
+    /* initialize parameter2 */
+    dstouch_use_syssec = 0;
 
     /* get parameters */    
     retval = _get_params(rcv_buf);
@@ -142,7 +144,7 @@ void OFRUISVRDSTOUCH(TPSVCINFO *tpsvcinfo)
     uisvr_logout_process();
 
     /* fbput ret_msg */
-    sprintf(ret_msg, "%s: Dataset Is Touched Successfully. dsn=%s\n", SERVICE_NAME, dataset_name);
+    sprintf(ret_msg, "%s: Dataset Is Touched Successfully. dsn=%s\n", SERVICE_NAME, dstouch_dsname);
     svrcom_fbput(snd_buf, FB_RETMSG, ret_msg, 0);
 
     /* service end */
@@ -172,7 +174,7 @@ static int _get_params(FBUF *rcv_buf)
     int retval;
 
     /* get dsname */
-    retval = svrcom_fbget(rcv_buf, FB_DSNAME, dataset_name, DS_DSNAME_LEN);
+    retval = svrcom_fbget(rcv_buf, FB_DSNAME, dstouch_dsname, DS_DSNAME_LEN);
     if (retval < 0) {
         OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_SVRCOM_FUNCTION_ERROR, SERVICE_NAME, "svrcom_fbget", retval);
         return retval;
@@ -180,37 +182,37 @@ static int _get_params(FBUF *rcv_buf)
 
     /* get member */
     if( dscom_is_relaxed_member_limit() )
-        retval = svrcom_fbget_opt(rcv_buf, FB_MEMNAME, member_name, DS_MEMBER_LEN2);
+        retval = svrcom_fbget_opt(rcv_buf, FB_MEMNAME, dstouch_member, DS_MEMBER_LEN2);
     else
-        retval = svrcom_fbget_opt(rcv_buf, FB_MEMNAME, member_name, DS_MEMBER_LEN);
+        retval = svrcom_fbget_opt(rcv_buf, FB_MEMNAME, dstouch_member, DS_MEMBER_LEN);
     if (retval < 0 && retval != SVRCOM_ERR_FBNOENT) {
         OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_SVRCOM_FUNCTION_ERROR, SERVICE_NAME, "svrcom_fbget", retval);
         return retval;
     }
 
     /* get volume serial */
-    retval = svrcom_fbget_opt(rcv_buf, FB_VOLUME, volume_serial, DS_VOLSER_LEN);
+    retval = svrcom_fbget_opt(rcv_buf, FB_VOLUME, dstouch_volser, DS_VOLSER_LEN);
     if (retval < 0 && retval != SVRCOM_ERR_FBNOENT) {
         OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_SVRCOM_FUNCTION_ERROR, SERVICE_NAME, "svrcom_fbget", retval);
         return retval;
     }
 
     /* get user catalog */
-    retval = svrcom_fbget_opt(rcv_buf, FB_CATNAME, user_catalog, DS_DSNAME_LEN);
+    retval = svrcom_fbget_opt(rcv_buf, FB_CATNAME, dstouch_catalog, DS_DSNAME_LEN);
     if (retval < 0 && retval != SVRCOM_ERR_FBNOENT) {
         OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_SVRCOM_FUNCTION_ERROR, SERVICE_NAME, "svrcom_fbget", retval);
         return retval;
     }
 
-    /* get creation_date */
-    retval = svrcom_fbget_opt(rcv_buf, FB_TIMESTAMP, creation_date, 8);
+    /* get dstouch_credt */
+    retval = svrcom_fbget_opt(rcv_buf, FB_TIMESTAMP, dstouch_credt, 8);
     if (retval < 0 && retval != SVRCOM_ERR_FBNOENT) {
         OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_SVRCOM_FUNCTION_ERROR, SERVICE_NAME, "svrcom_fbget", retval);
         return retval;
     }
     
-    /* get use_syssec */
-    retval = svrcom_fbget_opt(rcv_buf, FB_TYPE, creation_date, 8);
+    /* get dstouch_use_syssec */
+    retval = svrcom_fbget_opt(rcv_buf, FB_TYPE, dstouch_credt, 8);
     if (retval < 0 && retval != SVRCOM_ERR_FBNOENT) {
         OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_SVRCOM_FUNCTION_ERROR, SERVICE_NAME, "svrcom_fbget", retval);
         return retval;
@@ -223,56 +225,56 @@ static int _get_params(FBUF *rcv_buf)
 static int _validate_param(char *ret_msg)
 {
     /* check if dataset name is specified */
-    if( dataset_name[0] != '\0' ) {
+    if( dstouch_dsname[0] != '\0' ) {
         /* check if dataset name is invalid */
-        if( dscom_check_dsname(dataset_name) < 0 ) {
-            OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_INVALID_DSN_ERROR, SERVICE_NAME, dataset_name);
-            sprintf(ret_msg, "%s: invalid dataset name. dsname=%s\n", SERVICE_NAME, dataset_name);
+        if( dscom_check_dsname(dstouch_dsname) < 0 ) {
+            OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_INVALID_DSN_ERROR, SERVICE_NAME, dstouch_dsname);
+            sprintf(ret_msg, "%s: invalid dataset name. dsname=%s\n", SERVICE_NAME, dstouch_dsname);
             return SVRCOM_ERR_INVALID_PARAM;
         }
     }
 
     /* check if member name is specified */
-    if( member_name[0] != '\0' ) {
+    if( dstouch_member[0] != '\0' ) {
         /* check if member name is invalid */
-        if( dscom_check_dsname2(dataset_name, member_name) < 0 ) {
-            OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_INVALID_MEMBER_ERROR, SERVICE_NAME, member_name);
-            sprintf(ret_msg, "%s: invalid member name. member=%s\n", SERVICE_NAME, member_name);
+        if( dscom_check_dsname2(dstouch_dsname, dstouch_member) < 0 ) {
+            OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_INVALID_MEMBER_ERROR, SERVICE_NAME, dstouch_member);
+            sprintf(ret_msg, "%s: invalid member name. member=%s\n", SERVICE_NAME, dstouch_member);
             return SVRCOM_ERR_INVALID_PARAM;
         }
     }
 
     /* check if user catalog is specified */
-    if( user_catalog[0] != '\0' ) {
+    if( dstouch_catalog[0] != '\0' ) {
         /* check if user catalog is invalid */
-        if( dscom_check_dsname(user_catalog) < 0 ) {
-            OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_INVALID_CATNAME_ERROR, SERVICE_NAME, user_catalog);
-            sprintf(ret_msg, "%s: invalid catalog name. catalog=%s\n", SERVICE_NAME, user_catalog);
+        if( dscom_check_dsname(dstouch_catalog) < 0 ) {
+            OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_INVALID_CATNAME_ERROR, SERVICE_NAME, dstouch_catalog);
+            sprintf(ret_msg, "%s: invalid catalog name. catalog=%s\n", SERVICE_NAME, dstouch_catalog);
             return SVRCOM_ERR_INVALID_PARAM;
         }
     }
 
     /* check if volume serial is specified */
-    if( volume_serial[0] != '\0' ) {
+    if( dstouch_volser[0] != '\0' ) {
         /* check if volume serial is invalid */
-        if( dscom_check_volser(volume_serial) < 0 ) {
-            OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_INVALID_VOL_ERROR, SERVICE_NAME, volume_serial);
-            sprintf(ret_msg, "%s: invalid volume serial. volume=%s\n", SERVICE_NAME, volume_serial);
+        if( dscom_check_volser(dstouch_volser) < 0 ) {
+            OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_INVALID_VOL_ERROR, SERVICE_NAME, dstouch_volser);
+            sprintf(ret_msg, "%s: invalid volume serial. volume=%s\n", SERVICE_NAME, dstouch_volser);
             return SVRCOM_ERR_INVALID_PARAM;
         }
     }
 
     /* check if creation date is specified */
-    if( creation_date[0] != '\0' ) {
+    if( dstouch_credt[0] != '\0' ) {
         /* decompose date into year, month, day */
-        if( dscom_check_credt(creation_date) < 0 ) {
-            OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_INVALID_CREAT_DATE_ERROR, SERVICE_NAME, creation_date);
-            sprintf(ret_msg, "%s: invalid creation date. date=%s\n", SERVICE_NAME, creation_date);
+        if( dscom_check_credt(dstouch_credt) < 0 ) {
+            OFCOM_MSG_FPRINTF2(stderr, UISVR_MSG_INVALID_CREAT_DATE_ERROR, SERVICE_NAME, dstouch_credt);
+            sprintf(ret_msg, "%s: invalid creation date. date=%s\n", SERVICE_NAME, dstouch_credt);
             return SVRCOM_ERR_INVALID_PARAM;
         }
     } else {
         /* set default date(sysdate) */
-        OFCOM_DATE_TO_STRING( creation_date, ofcom_sys_date() );
+        OFCOM_DATE_TO_STRING( dstouch_credt, ofcom_sys_date() );
     }
 
     return 0;
@@ -284,7 +286,7 @@ static int _init_libraries()
     int retval;
     
     /* dsio_batch_initialize(): consider -s option */
-    if (use_syssec) dsio_batch_use_sys1_config = 1;
+    if (dstouch_use_syssec) dsio_batch_use_sys1_config = 1;
 
     /* initialize dsio_batch library */
     retval = dsio_batch_initialize(DSIO_BATCH_INIT_BOTH);
@@ -294,7 +296,7 @@ static int _init_libraries()
     }
 
     /* ams_initialize(): consider -s option */
-    if (use_syssec) ams_use_sys1_config = 1;
+    if (dstouch_use_syssec) ams_use_sys1_config = 1;
     
     /* initialize ams library */
     retval = ams_initialize();
@@ -355,7 +357,7 @@ static int _check_ds_exist(char *ret_msg)
 
 
     /* call a function to set search catalog */
-    retval = ams_use_catalog(user_catalog);
+    retval = ams_use_catalog(dstouch_catalog);
     if (retval < 0) {
         OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_AMS_FUNCTION_ERROR, SERVICE_NAME, "ams_use_catalog", retval);
         sprintf(ret_msg, "%s: %s() failed. rc=%d\n", SERVICE_NAME, "ams_use_catalog", retval);
@@ -363,27 +365,27 @@ static int _check_ds_exist(char *ret_msg)
     }
 
     /* set sarch options for ams_search_entries() */
-    if( user_catalog[0] ) search_flags = AMS_SEARCH_1_CATALOG;
+    if( dstouch_catalog[0] ) search_flags = AMS_SEARCH_1_CATALOG;
     else search_flags = AMS_SEARCH_DEFAULT;
 
     /* check if wild card is used */
-    if( strchr(dataset_name, '*') || strchr(dataset_name, '%') ) {
-    /*  OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_AMS_FUNCTION_ERROR, SERVICE_NAME, "dataset_name", retval); */
-        sprintf(ret_msg, "%s: wild card character is not allowed in dsname - dsname=%s\n", SERVICE_NAME, dataset_name);
+    if( strchr(dstouch_dsname, '*') || strchr(dstouch_dsname, '%') ) {
+    /*  OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_AMS_FUNCTION_ERROR, SERVICE_NAME, "dstouch_dsname", retval); */
+        sprintf(ret_msg, "%s: wild card character is not allowed in dsname - dsname=%s\n", SERVICE_NAME, dstouch_dsname);
         return -1;
     }
 
     /* separate member name from dsname */
-    if( (cutpos = strchr(dataset_name, '(') ) ) {
-        *cutpos = '\0'; strcpy(member_name, cutpos+1);
-        if( (cutpos = strchr(member_name, ')') ) ) *cutpos = '\0';
+    if( (cutpos = strchr(dstouch_dsname, '(') ) ) {
+        *cutpos = '\0'; strcpy(dstouch_member, cutpos+1);
+        if( (cutpos = strchr(dstouch_member, ')') ) ) *cutpos = '\0';
     }
 
-    if( dsalc_new_allocate_method && volume_serial[0] ) {
+    if( dsalc_new_allocate_method && dstouch_volser[0] ) {
         retval = AMS_ERR_NOT_FOUND;
     } else {
         /* search source dataset in the catalog */
-        retval = ams_search_entries(dataset_name, "ACGHU", & rcount, result, search_flags);
+        retval = ams_search_entries(dstouch_dsname, "ACGHU", & rcount, result, search_flags);
         if( retval < 0 && retval != AMS_ERR_NOT_FOUND ) {
             OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_AMS_FUNCTION_ERROR, SERVICE_NAME, "ams_search_entreis", retval);
             sprintf(ret_msg, "%s: %s() failed. rc=%d\n", SERVICE_NAME, "ams_search_entries", retval);
@@ -394,20 +396,20 @@ static int _check_ds_exist(char *ret_msg)
     /* check if dataset is not found */
     if( retval == AMS_ERR_NOT_FOUND ) {
         /* check if catalog name is specified */
-        if( user_catalog[0] ) {
-            /*  OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_AMS_FUNCTION_ERROR, SERVICE_NAME, "user_catalog", retval); */
-            if( dsalc_new_allocate_method && volume_serial[0] ) {
-                sprintf(ret_msg, "%s: catalog option(%s) cannot use with volume option(%s) on the DS_ALLOCATE_METHOD=NEW\n", SERVICE_NAME, user_catalog, volume_serial);
+        if( dstouch_catalog[0] ) {
+            /*  OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_AMS_FUNCTION_ERROR, SERVICE_NAME, "dstouch_catalog", retval); */
+            if( dsalc_new_allocate_method && dstouch_volser[0] ) {
+                sprintf(ret_msg, "%s: catalog option(%s) cannot use with volume option(%s) on the DS_ALLOCATE_METHOD=NEW\n", SERVICE_NAME, dstouch_catalog, dstouch_volser);
                 return -1;
             } else {
-                sprintf(ret_msg, "%s: dataset is not found in the catalog - dsname=%s,catalog=%s\n", SERVICE_NAME, dataset_name, user_catalog);
+                sprintf(ret_msg, "%s: dataset is not found in the catalog - dsname=%s,catalog=%s\n", SERVICE_NAME, dstouch_dsname, dstouch_catalog);
                 return -1;
             }
         }
 
         /* check if volume serial is not specified */
-        if( ! volume_serial[0] ) {
-            retval = volm_get_default_volume(volume_serial);
+        if( ! dstouch_volser[0] ) {
+            retval = volm_get_default_volume(dstouch_volser);
             if( retval < 0 ) {
                 OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_VOLM_FUNCTION_ERROR, SERVICE_NAME, "volm_get_default_volume", retval);
                 sprintf(ret_msg, "%s: %s() failed. rc=%d\n", SERVICE_NAME, "volm_get_default_volume", retval);
@@ -416,7 +418,7 @@ static int _check_ds_exist(char *ret_msg)
         }
 
         /* get volume path from volume serial */
-        retval = volm_get_volume_path(volume_serial, filepath);
+        retval = volm_get_volume_path(dstouch_volser, filepath);
         if( retval < 0 ) {
             OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_VOLM_FUNCTION_ERROR, SERVICE_NAME, "volm_get_volume_path", retval);
             sprintf(ret_msg, "%s: %s() failed. rc=%d\n", SERVICE_NAME, "volm_get_volume_path", retval);
@@ -425,20 +427,20 @@ static int _check_ds_exist(char *ret_msg)
 
         /* compose filepath */
         strcat(filepath, "/");
-        strcat(filepath, dataset_name);
+        strcat(filepath, dstouch_dsname);
 
         /* check file exist */
         retval = lstat(filepath, & filestat);
         if( retval < 0 ) {
-        /*  OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_AMS_FUNCTION_ERROR, SERVICE_NAME, "dataset_name", retval); */
-            sprintf(ret_msg, "%s: dataset is not found in the volume - dsname=%s,volser=%s\n", SERVICE_NAME, dataset_name, volume_serial);
+        /*  OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_AMS_FUNCTION_ERROR, SERVICE_NAME, "dstouch_dsname", retval); */
+            sprintf(ret_msg, "%s: dataset is not found in the volume - dsname=%s,volser=%s\n", SERVICE_NAME, dstouch_dsname, dstouch_volser);
             return -1;
         }
 
         /* check if member name is specified but dataset is not a PDS */
-        if( member_name[0] && ! S_ISDIR(filestat.st_mode) ) {
-        /*  OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_AMS_FUNCTION_ERROR, SERVICE_NAME, "member_name", retval); */
-            sprintf(ret_msg, "%s: dataset is not a PDS while member name is specified - dsname=%s\n", SERVICE_NAME, dataset_name);
+        if( dstouch_member[0] && ! S_ISDIR(filestat.st_mode) ) {
+        /*  OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_AMS_FUNCTION_ERROR, SERVICE_NAME, "dstouch_member", retval); */
+            sprintf(ret_msg, "%s: dataset is not a PDS while member name is specified - dsname=%s\n", SERVICE_NAME, dstouch_dsname);
             return -1;
         }
 
@@ -453,27 +455,27 @@ static int _check_ds_exist(char *ret_msg)
         }
 
         /* check if volume serial is not specified */
-        if( ! user_catalog[0] ) strcpy(user_catalog, result[0].catname);
-        /* if( ! volume_serial[0] ) strcpy(volume_serial, nvsm_info.volser); */
+        if( ! dstouch_catalog[0] ) strcpy(dstouch_catalog, result[0].catname);
+        /* if( ! dstouch_volser[0] ) strcpy(dstouch_volser, nvsm_info.volser); */
 
         /* check if catalog information is different */
-        if( volume_serial[0] && strcmp(volume_serial, nvsm_info.volser) ) {
-        /*  OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_AMS_FUNCTION_ERROR, SERVICE_NAME, "volume_serial", retval); */
-            sprintf(ret_msg, "%s: volume serial information is different from the catalog - dsname=%s\n", SERVICE_NAME, dataset_name);
+        if( dstouch_volser[0] && strcmp(dstouch_volser, nvsm_info.volser) ) {
+        /*  OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_AMS_FUNCTION_ERROR, SERVICE_NAME, "dstouch_volser", retval); */
+            sprintf(ret_msg, "%s: volume serial information is different from the catalog - dsname=%s\n", SERVICE_NAME, dstouch_dsname);
             return -1;
         }
 
         /* check if member name is specified but dataset is not a PDS */
-        if( member_name[0] && strncmp(nvsm_info.dsorg, "PO", 2) ) {
-        /*  OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_AMS_FUNCTION_ERROR, SERVICE_NAME, "member_name", retval); */
-            sprintf(ret_msg, "%s: dataset is not a PDS while member name is specified - dsname=%s\n", SERVICE_NAME, dataset_name);
+        if( dstouch_member[0] && strncmp(nvsm_info.dsorg, "PO", 2) ) {
+        /*  OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_AMS_FUNCTION_ERROR, SERVICE_NAME, "dstouch_member", retval); */
+            sprintf(ret_msg, "%s: dataset is not a PDS while member name is specified - dsname=%s\n", SERVICE_NAME, dstouch_dsname);
             return -1;
         }
 
     /* otherwise dataset is VSAM */
     } else {
         /* check if user catalog is not specified */
-        if( ! user_catalog[0] ) strcpy(user_catalog, result[0].catname);
+        if( ! dstouch_catalog[0] ) strcpy(dstouch_catalog, result[0].catname);
     }
 
     return 0;
@@ -497,7 +499,7 @@ static int _touch_dataset(char *ret_msg)
     ams_info_nvsm_t nvsm_info;
 
     /* set user catalog */
-    retval = ams_use_catalog(user_catalog);
+    retval = ams_use_catalog(dstouch_catalog);
     if (retval < 0) {
         OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_AMS_FUNCTION_ERROR, SERVICE_NAME, "ams_use_catalog", retval);
         sprintf(ret_msg, "%s: %s() failed. rc=%d\n", SERVICE_NAME, "ams_use_catalog", retval);
@@ -505,8 +507,8 @@ static int _touch_dataset(char *ret_msg)
     }
 
     /* prepare allocation dsname */
-    if (member_name[0] != 0) sprintf(dsname_conv, "%s(%s)", dataset_name, member_name);
-    else strcpy(dsname_conv, dataset_name);
+    if (dstouch_member[0] != 0) sprintf(dsname_conv, "%s(%s)", dstouch_dsname, dstouch_member);
+    else strcpy(dsname_conv, dstouch_dsname);
 
     /* prepare allocation request */
     memset(&req, 0x00, sizeof(req));
@@ -516,7 +518,7 @@ static int _touch_dataset(char *ret_msg)
 
     /* prepare request - volume */
     strcpy(req.volume.unit, "");
-    strcpy(req.volume.vlist, volume_serial);
+    strcpy(req.volume.vlist, dstouch_volser);
 
     /* prepare request - dslock */
     req.lock.lock_wait = LOCKM_LOCK_WAIT_IMMEDIATE; /* lock immediately */
@@ -531,16 +533,16 @@ static int _touch_dataset(char *ret_msg)
     }
 
     /* change dataset creation date */
-    if (creation_date[0])
+    if (dstouch_credt[0])
     {
-        if( dsalc_new_allocate_method && volume_serial[0] )
+        if( dsalc_new_allocate_method && dstouch_volser[0] )
         {
             retval = AMS_ERR_NOT_FOUND;
         }
         else
         {
             /* search catalog entries */
-            retval = ams_search_entries(dataset_name, "ACGHU", &rcount, &result, AMS_SEARCH_DEFAULT);
+            retval = ams_search_entries(dstouch_dsname, "ACGHU", &rcount, &result, AMS_SEARCH_DEFAULT);
             if (retval < 0 && retval != AMS_ERR_NOT_FOUND)
             {
                 OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_AMS_FUNCTION_ERROR, SERVICE_NAME, "ams_search_entreis", retval);
@@ -553,7 +555,7 @@ static int _touch_dataset(char *ret_msg)
         if (retval == AMS_ERR_NOT_FOUND)
         {
             /* call ams function to update dataset creation date */
-            retval = ams_touch_nvsm_ds(dataset_name, volume_serial, creation_date, AMS_TOUCH_DEFAULT);
+            retval = ams_touch_nvsm_ds(dstouch_dsname, dstouch_volser, dstouch_credt, AMS_TOUCH_DEFAULT);
             if (retval < 0)
             {
                 OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_AMS_FUNCTION_ERROR, SERVICE_NAME, "ams_touch_nvsm_ds", retval);
@@ -565,7 +567,7 @@ static int _touch_dataset(char *ret_msg)
         else
         {
             /* call ams function to update dataset creation date */
-            retval = ams_touch(result.catname, result.entname, result.enttype, creation_date, AMS_TOUCH_DEFAULT);
+            retval = ams_touch(result.catname, result.entname, result.enttype, dstouch_credt, AMS_TOUCH_DEFAULT);
             if (retval < 0)
             {
                 OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_AMS_FUNCTION_ERROR, SERVICE_NAME, "ams_touch", retval);
@@ -573,7 +575,7 @@ static int _touch_dataset(char *ret_msg)
                 goto _TOUCH_DATASET_ERR_RETURN_04;
             }
              /* ams_touch() doesn't support touching pds member */
-            if (member_name[0])
+            if (dstouch_member[0])
             {/* retrieve information from catalog */
                 retval = ams_info(result.catname, result.entname, result.enttype, & nvsm_info, AMS_INFO_DEFAULT);
                  if( retval < 0 )
@@ -583,7 +585,7 @@ static int _touch_dataset(char *ret_msg)
                     goto _TOUCH_DATASET_ERR_RETURN_04;
                  }
                  /* call ams function to update pds member creation date */
-                 retval = ams_touch_nvsm_ds(dsname_conv, nvsm_info.volser, creation_date, AMS_TOUCH_DEFAULT);
+                 retval = ams_touch_nvsm_ds(dsname_conv, nvsm_info.volser, dstouch_credt, AMS_TOUCH_DEFAULT);
                 if (retval < 0)
                 {
                     OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_AMS_FUNCTION_ERROR, SERVICE_NAME, "ams_touch_nvsm_ds", retval);
@@ -612,7 +614,7 @@ static int _touch_dataset(char *ret_msg)
     }
 
     /* retrieve volume serial from dcbs structure */
-    retval = dsio_dcb_volser(dcbs, 0, volume_serial);
+    retval = dsio_dcb_volser(dcbs, 0, dstouch_volser);
     if (retval < 0) {
         OFCOM_MSG_FPRINTF3(stderr, UISVR_MSG_DSIO_FUNCTION_ERROR, SERVICE_NAME, "dsio_dcb_volser", retval);
         sprintf(ret_msg, "%s: %s() failed. rc=%d\n", SERVICE_NAME, "dsio_dcb_volser", retval);
