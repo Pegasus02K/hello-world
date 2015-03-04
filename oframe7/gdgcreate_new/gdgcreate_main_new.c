@@ -6,7 +6,7 @@
  * Used service:
  *      OFRUISVRGDGCRE
  *
- * To service:
+ * Parameters to service:
  *      FB_TACF_TOKEN(string): TACF token
  *      FB_DSNAME(string): GDG name
  *      FB_ARGS(string): GDG attributes
@@ -14,7 +14,7 @@
  * Format(FB_ARGS):
  *      limit;expire;usercat;empty;scratch;
  *
- * Froem service:
+ * Return values from service:
  *      FB_RETMSG(string): error message
  */
 
@@ -35,25 +35,20 @@
 extern char *gdgcreate_version;
 extern char *gdgcreate_build_info;
 
+int32_t gdgcreate_limit = 255;
 char gdgcreate_gdgname[DS_DSNAME_LEN + 2] = {0,};
 char gdgcreate_catalog[DS_DSNAME_LEN + 2] = {0,};
-
 char gdgcreate_args[1024] = {0,};
-
-int32_t gdgcreate_limit = 255;
 char gdgcreate_expdt[8+2] = {0,};
-
 int gdgcreate_empty = 0;
 int gdgcreate_scratch = 0;
 
 int error_return(int error_code, char *function_name);
 int system_error(char *function_name);
-
 int check_args(int argc, char *argv[]);
 int print_usage();
-
 int validate_param();
-
+int set_field_buffer(FBUF * fbuf);
 int log_a_record(char *title, char *record, int rcode);
 
 static void _signal_handler(int signo)
@@ -100,7 +95,8 @@ int main(int argc, char *argv[])
 	/* validate parameters */
 	retval = validate_param();
 	if( retval < 0 ) goto _GDGCREATE_MAIN_ERR_RETURN_00;
-
+	sprintf(gdgcreate_args, "%d;%s;%s;%d;%d;", gdgcreate_limit, gdgcreate_expdt, gdgcreate_catalog, gdgcreate_empty, gdgcreate_scratch);
+	
 	/* compose trace log record */
 	sprintf(record, "GDGNAME=%s,CATALOG=%s,LIMIT=%d",
 		gdgcreate_gdgname, gdgcreate_catalog, gdgcreate_limit);
@@ -145,23 +141,10 @@ int main(int argc, char *argv[])
 		goto _GDGCREATE_MAIN_ERR_RETURN_02;
 	}
 	
-	/* fbput FB_DSNAME */
-	retval = fbput(snd_buf, FB_DSNAME, gdgcreate_gdgname, 0);
-	if (retval == -1)
-	{
-		fprintf(stderr, "gdgcreate: ***An error occurred while storing DSNAME in field buffer->%s\n", fbstrerror(fberror)); 
+	/* set field buffer parameters */
+	retval = set_field_buffer(snd_buf);
+	if (retval < 0)
 		goto _GDGCREATE_MAIN_ERR_RETURN_03;
-	}
-
-	/* fbput FB_ARGS */
-	sprintf(gdgcreate_args, "%d;%s;%s;%d;%d;", gdgcreate_limit, gdgcreate_expdt, gdgcreate_catalog, gdgcreate_empty, gdgcreate_scratch);
-
-	retval = fbput(snd_buf, FB_ARGS, gdgcreate_args, 0);
-	if (retval == -1)
-	{
-		fprintf(stderr, "gdgcreate: ***An error occurred while storing ARGS in field buffer->%s\n", fbstrerror(fberror)); 
-		goto _GDGCREATE_MAIN_ERR_RETURN_03;
-	}
 	
 	/* tmax service call */
 	retval = tpcall("OFRUISVRGDGCRE", (char *)snd_buf, 0, (char **)&rcv_buf, &rcv_len, TPNOFLAGS);
@@ -323,6 +306,30 @@ int validate_param()
 		}
 	}
 
+	return 0;
+}
+
+
+int set_field_buffer(FBUF * fbuf)
+{
+	int retval;
+	
+	/* fbput FB_DSNAME */
+	retval = fbput(fbuf, FB_DSNAME, gdgcreate_gdgname, 0);
+	if (retval == -1)
+	{
+		fprintf(stderr, "gdgcreate: ***An error occurred while storing DSNAME in field buffer->%s\n", fbstrerror(fberror)); 
+		return -1;
+	}
+
+	/* fbput FB_ARGS */
+	retval = fbput(fbuf, FB_ARGS, gdgcreate_args, 0);
+	if (retval == -1)
+	{
+		fprintf(stderr, "gdgcreate: ***An error occurred while storing ARGS in field buffer->%s\n", fbstrerror(fberror)); 
+		return -1;
+	}
+	
 	return 0;
 }
 
