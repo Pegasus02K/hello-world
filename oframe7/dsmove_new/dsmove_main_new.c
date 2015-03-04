@@ -6,7 +6,7 @@
  * Used service:
  *      OFRUISVRDSMOVE2
  * 
- * To service:
+ * Parameters to service:
  *      FB_TACF_TOKEN(string): TACF token
  *      FB_DSNAME(string): source dataset name
  *      FB_CATNAME(string): catalog name of the task (optional)
@@ -19,7 +19,7 @@
  *    - dst_volser: destination volume serial (optional)
  *    * NOTE: at least one destination parameter is compulsory
  *
- * From service:
+ * Return values from service:
  *      FB_RETMSG(string): error message
  */
 
@@ -45,19 +45,16 @@ extern char *dsmove_build_info;
 char dsmove_src_dsname[DS_DSNAME_LEN + 2] = {0,};
 char dsmove_src_catname[DS_DSNAME_LEN + 2] = {0,};
 char dsmove_src_volser[DS_VOLSER_LEN + 2] = {0,};
-
 char dsmove_dst_dsname[DS_DSNAME_LEN + 2] = {0,};
 char dsmove_dst_volser[DS_VOLSER_LEN + 2] = {0,};
 char dsmove_dst_args[128] = {0,};
 
 int error_return(int error_code, char *function_name);
 int system_error(char *function_name);
-
 int check_args(int argc, char *argv[]);
 int print_usage();
-
 int validate_param();
-
+int set_field_buffer(FBUF * fbuf);
 int log_a_record(char *title, char *record, int rcode);
 
 static void _signal_handler(int signo)
@@ -107,7 +104,9 @@ int main(int argc, char *argv[])
 	/* validate parameters */
 	retval = validate_param();
 	if( retval < 0 ) goto _DSMOVE_MAIN_ERR_RETURN_00;
-
+	
+	sprintf(dsmove_dst_args, "%s;%s", dsmove_dst_dsname, dsmove_dst_volser);
+	
 	/* compose trace log record */
 	sprintf(record, "SOURCE=%s,DEST=%s,CATALOG=%s,VOLSER=%s,TARGET=%s",
 		dsmove_src_dsname, dsmove_dst_dsname, dsmove_src_catname, dsmove_src_volser, dsmove_dst_volser);
@@ -151,38 +150,10 @@ int main(int argc, char *argv[])
 		goto _DSMOVE_MAIN_ERR_RETURN_02;
 	}
 	
-	/* fbput FB_DSNAME */
-	retval = fbput(snd_buf, FB_DSNAME, dsmove_src_dsname, 0);
-	if ( retval == -1 )
-	{
-		fprintf(stderr, "dsmove: ***An error occurred while storing DSNAME in field buffer->%s\n", fbstrerror(fberror)); 
+	/* set field buffer parameters */
+	retval = set_field_buffer(snd_buf);
+	if (retval < 0)
 		goto _DSMOVE_MAIN_ERR_RETURN_03;
-	}
-	
-	/* fbput FB_CATNAME */
-	retval = fbput(snd_buf, FB_CATNAME, dsmove_src_catname, 0);
-	if ( retval == -1 )
-	{
-		fprintf(stderr, "dsmove: ***An error occurred while storing CATNAME in field buffer->%s\n", fbstrerror(fberror)); 
-		goto _DSMOVE_MAIN_ERR_RETURN_03;
-	}
-	
-	/* fbput FB_VOLUME */
-	retval = fbput(snd_buf, FB_VOLUME, dsmove_src_volser, 0);
-	if ( retval == -1 )
-	{
-		fprintf(stderr, "dsmove: ***An error occurred while storing VOLUME in field buffer->%s\n", fbstrerror(fberror)); 
-		goto _DSMOVE_MAIN_ERR_RETURN_03;
-	}
-	
-	/* fbput FB_ARGS */
-	sprintf(dsmove_dst_args, "%s;%s", dsmove_dst_dsname, dsmove_dst_volser);
-	retval = fbput(snd_buf, FB_ARGS, dsmove_dst_args, 0);
-	if ( retval == -1 )
-	{
-		fprintf(stderr, "dsmove: ***An error occurred while storing ARGS in field buffer->%s\n", fbstrerror(fberror)); 
-		goto _DSMOVE_MAIN_ERR_RETURN_03;
-	}
 	
 	/* tmax service call */
 	retval = tpcall("OFRUISVRDSMOVE2", (char *)snd_buf, 0, (char **)&rcv_buf, &rcv_len, TPNOFLAGS);
@@ -373,6 +344,46 @@ int validate_param()
 		return -1;
 	}
 
+	return 0;
+}
+
+
+int set_field_buffer(FBUF * fbuf)
+{
+	int retval;
+	
+	/* fbput FB_DSNAME */
+	retval = fbput(fbuf, FB_DSNAME, dsmove_src_dsname, 0);
+	if ( retval == -1 )
+	{
+		fprintf(stderr, "dsmove: ***An error occurred while storing DSNAME in field buffer->%s\n", fbstrerror(fberror));
+		return -1;
+	}
+	
+	/* fbput FB_CATNAME */
+	retval = fbput(fbuf, FB_CATNAME, dsmove_src_catname, 0);
+	if ( retval == -1 )
+	{
+		fprintf(stderr, "dsmove: ***An error occurred while storing CATNAME in field buffer->%s\n", fbstrerror(fberror)); 
+		return -1;
+	}
+	
+	/* fbput FB_VOLUME */
+	retval = fbput(fbuf, FB_VOLUME, dsmove_src_volser, 0);
+	if ( retval == -1 )
+	{
+		fprintf(stderr, "dsmove: ***An error occurred while storing VOLUME in field buffer->%s\n", fbstrerror(fberror)); 
+		return -1;
+	}
+	
+	/* fbput FB_ARGS */
+	retval = fbput(fbuf, FB_ARGS, dsmove_dst_args, 0);
+	if ( retval == -1 )
+	{
+		fprintf(stderr, "dsmove: ***An error occurred while storing ARGS in field buffer->%s\n", fbstrerror(fberror)); 
+		return -1;
+	}
+	
 	return 0;
 }
 
